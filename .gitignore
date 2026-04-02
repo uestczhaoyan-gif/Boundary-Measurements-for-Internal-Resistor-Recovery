@@ -1,0 +1,39 @@
+# Local assistant / environment
+.claude/
+.vendor_torchpy311/
+.vendor/
+.venv/
+venv/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Generated training artifacts
+cache/
+outputs/
+*.pt
+*.pth
+*.npz
+
+# Generated datasets that can be rebuilt from scripts
+data/*.csv
+gnn/GNN_EXPAND/data/*.csv
+mlp/fixed_change_recon/data_fixed/*.csv
+inverse_identifiability/outputs*/
+inverse_identifiability/*_experiment/
+robustness_archive/
+
+# Temporary notes / ad-hoc logs
+*训练日志*.txt
+*训练记录*.txt
+*补充日志*.txt
+
+# OS / editor noise
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

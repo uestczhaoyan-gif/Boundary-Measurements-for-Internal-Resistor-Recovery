@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="760" viewBox="0 0 1250 760">
+<defs>
+<style>
+text { font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif; fill: #23313d; }
+.title { font-size: 34px; font-weight: 700; }
+.subtitle { font-size: 18px; font-weight: 500; fill: #51606d; }
+.axis { font-size: 14px; fill: #5c6975; }
+.small { font-size: 12px; fill: #6a7885; }
+.label { font-size: 16px; font-weight: 600; }
+</style>
+</defs>
+<rect x="0" y="0" width="1250" height="760" fill="#fbfaf6" />
+<text x="70" y="72" class="title" text-anchor="start">Dataset Composition</text>
+<text x="70" y="105" class="subtitle" text-anchor="start">10,000 combo samples with balanced 1/2/3-change cases and 18,600 changed resistors</text>
+<rect x="55" y="150" width="520" height="560" fill="#fffdf9" stroke="#e7ddd0" stroke-width="2" rx="24" opacity="1.0" />
+<text x="90" y="195" class="label" text-anchor="start">Combo Count by Change Number</text>
+<rect x="110" y="575.8823529411765" width="82" height="74.11764705882354" fill="#c9d3de" stroke="none" stroke-width="0" rx="18" opacity="1.0" />
+<text x="151.0" y="561.8823529411765" class="label" text-anchor="middle">700</text>
+<text x="151.0" y="680" class="axis" text-anchor="middle">0</text>
+<rect x="234" y="321.7647058823529" width="82" height="328.2352941176471" fill="#f6b26b" stroke="none" stroke-width="0" rx="18" opacity="1.0" />
+<text x="275.0" y="307.7647058823529" class="label" text-anchor="middle">3100</text>
+<text x="275.0" y="680" class="axis" text-anchor="middle">1</text>
+<rect x="358" y="321.7647058823529" width="82" height="328.2352941176471" fill="#ef8a62" stroke="none" stroke-width="0" rx="18" opacity="1.0" />
+<text x="399.0" y="307.7647058823529" class="label" text-anchor="middle">3100</text>
+<text x="399.0" y="680" class="axis" text-anchor="middle">2</text>
+<rect x="482" y="321.7647058823529" width="82" height="328.2352941176471" fill="#c0392b" stroke="none" stroke-width="0" rx="18" opacity="1.0" />
+<text x="523.0" y="307.7647058823529" class="label" text-anchor="middle">3100</text>
+<text x="523.0" y="680" class="axis" text-anchor="middle">3</text>
+<line x1="100" y1="650.0" x2="520" y2="650.0" stroke="#e6ecf1" stroke-width="1" stroke-linecap="round" opacity="1.0" />
+<text x="88" y="655.0" class="axis" text-anchor="end">0</text>
+<line x1="100" y1="544.1176470588235" x2="520" y2="544.1176470588235" stroke="#e6ecf1" stroke-width="1" stroke-linecap="round" opacity="1.0" />
+<text x="88" y="549.1176470588235" class="axis" text-anchor="end">1000</text>
+<line x1="100" y1="438.2352941176471" x2="520" y2="438.2352941176471" stroke="#e6ecf1" stroke-width="1" stroke-linecap="round" opacity="1.0" />
+<text x="88" y="443.2352941176471" class="axis" text-anchor="end">2000</text>
+<line x1="100" y1="332.3529411764706" x2="520" y2="332.3529411764706" stroke="#e6ecf1" stroke-width="1" stroke-linecap="round" opacity="1.0" />
+<text x="88" y="337.3529411764706" class="axis" text-anchor="end">3000</text>
+<text x="310" y="700" class="axis" text-anchor="middle">change_count</text>
+<text x="92" y="248" class="axis" text-anchor="start">combos</text>
+<rect x="620" y="150" width="575" height="560" fill="#fffdf9" stroke="#e7ddd0" stroke-width="2" rx="24" opacity="1.0" />
+<text x="655" y="195" class="label" text-anchor="start">Absolute Resistance Shift |?R| Distribution</text>
+<rect x="669.0" y="300.5439330543933" width="39.0" height="349.4560669456067" fill="#f6d365" stroke="none" stroke-width="0" rx="14" opacity="1.0" />
+<text x="688.5" y="680" class="axis" text-anchor="middle">50</text>
+<rect x="716.0" y="305.43933054393307" width="39.0" height="344.56066945606693" fill="#f0c25f" stroke="none" stroke-width="0" rx="14" opacity="1.0" />
+<text x="735.5" y="680" class="axis" text-anchor="middle">75</text>
+<rect x="763.0" y="290.0" width="39.0" height="360.0" fill="#eab158" stroke="none" stroke-width="0" rx="14" opacity="1.0" />
+<text x="782.5" y="680" class="axis" text-anchor="middle">100</text>
+<rect x="810.0" y="299.22594142259413" width="39.0" height="350.77405857740587" fill="#e4a052" stroke="none" stroke-width="0" rx="14" opacity="1.0" />
+<text x="829.5" y="680" class="axis" text-anchor="middle">125</text>
+<rect x="857.0" y="295.836820083682" width="39.0" height="354.163179916318" fill="#de8f4b" stroke="none" stroke-width="0" rx="14" opacity="1.0" />
+<text x="876.5" y="680" class="axis" text-anchor="middle">150</text>
+<rect x="904.0" y="302.9916317991632" width="39.0" height="347.0083682008368" fill="#d87d45" stroke="none" stroke-width="0" rx="14" opacity="1.0" />
+<text x="923.5" y="680" class="axis" text-anchor="middle">175</text>
+<rect x="951.0" y="297.7196652719665" width="39.0" height="352.2803347280335" fill="#d26c3e" stroke="none" stroke-width="0" rx="14" opacity="1.0" />
+<text x="970.5" y="680" class="axis" text-anchor="middle">200</text>
+<rect x="998.0" y="301.10878661087867" width="39.0" height="348.89121338912133" fill="#cc5b38" stroke="none" stroke-width="0" rx="14" opacity="1.0" />
+<text x="1017.5" y="680" class="axis" text-anchor="middle">225</text>
+<rect x="1045.0" y="305.81589958159" width="39.0" height="344.18410041841" fill="#c64a31" stroke="none" stroke-width="0" rx="14" opacity="1.0" />
+<text x="1064.5" y="680" class="axis" text-anchor="middle">250</text>
+<rect x="1092.0" y="299.22594142259413" width="39.0" height="350.77405857740587" fill="#c0392b" stroke="none" stroke-width="0" rx="14" opacity="1.0" />
+<text x="1135" y="680" class="axis" text-anchor="end">300</text>
+<line x1="665" y1="650.0" x2="1135" y2="650.0" stroke="#e6ecf1" stroke-width="1" stroke-linecap="round" opacity="1.0" />
+<text x="655" y="655.0" class="axis" text-anchor="end">0</text>
+<line x1="665" y1="555.8577405857741" x2="1135" y2="555.8577405857741" stroke="#e6ecf1" stroke-width="1" stroke-linecap="round" opacity="1.0" />
+<text x="655" y="560.8577405857741" class="axis" text-anchor="end">500</text>
+<line x1="665" y1="461.7154811715481" x2="1135" y2="461.7154811715481" stroke="#e6ecf1" stroke-width="1" stroke-linecap="round" opacity="1.0" />
+<text x="655" y="466.7154811715481" class="axis" text-anchor="end">1000</text>
+<line x1="665" y1="367.5732217573222" x2="1135" y2="367.5732217573222" stroke="#e6ecf1" stroke-width="1" stroke-linecap="round" opacity="1.0" />
+<text x="655" y="372.5732217573222" class="axis" text-anchor="end">1500</text>
+<line x1="665" y1="273.4309623430962" x2="1135" y2="273.4309623430962" stroke="#e6ecf1" stroke-width="1" stroke-linecap="round" opacity="1.0" />
+<text x="655" y="278.4309623430962" class="axis" text-anchor="end">2000</text>
+<text x="900.0" y="700" class="axis" text-anchor="middle">|?R| (Ohm)</text>
+<text x="665" y="248" class="axis" text-anchor="start">changed resistors</text>
+</svg>
