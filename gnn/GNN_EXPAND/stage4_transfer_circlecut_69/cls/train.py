@@ -15,6 +15,6 @@ if __name__ == "__main__":
         stage_name="stage4_transfer_circlecut_69",
         topology_key="circlecut_69",
         default_data_path="gnn/GNN_EXPAND/data/circlecut_69.csv",
-        default_pretrained_model_path="gnn/GNN_EXPAND/stage1_square_10x10/cls/outputs/training_data64Nodes_2/model_last.pt",
+        default_pretrained_model_path="gnn/GNN_EXPAND/stage1_square_10x10/cls/outputs/square_10x10/model_last.pt",
         runtime_dir=Path(__file__).resolve().parent,
     )

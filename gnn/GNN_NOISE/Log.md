@@ -214,3 +214,53 @@
 - 已完成：
   - `train.py` 语法校验
   - 参数入口校验
+
+## 2026-04-03 - `0402噪声v2训练日志` 吸收与验证脚本补强
+- 已吸收根目录 `0402噪声v2训练日志.txt`，但未直接转抄原始终端流水。
+- 本轮 `v2` 云端已确认：
+  - clean `CLS test_macro_f1=0.9149`
+  - clean `REG mae_all=0.4664`，`mae_changed=24.2457`，`count_macro_f1=0.8349`
+  - clean joint `CMEI=93.49`
+  - `40dB CLS test_macro_f1=0.9078`
+  - `40dB REG mae_all=0.5317`，`mae_changed=25.3754`，`count_macro_f1=0.8342`
+- `30dB / 20dB` 本轮未得到有效结果，已定位为：
+  - 验证命令中的 `--dataset-tag ${TAG}` 未展开
+  - 参数解析在推理开始前直接退出
+- 已新增：
+  - `gnn/GNN_NOISE/run_noise_eval_suite.py`
+- 该脚本用于：
+  - 统一串行执行 clean / `40dB` / `30dB` / `20dB` 的 `CLS / REG / joint` 评估
+  - 自动把单模型结果按噪声等级保存成独立 `json`
+  - 支持 `--dry-run` 先打印完整命令
+- 同时已在以下入口补充 `dataset-tag` 空值 / 占位符未展开的明确报错：
+  - `gnn/GNN_NOISE/CLS_modelo3_ft_v2/train.py`
+  - `gnn/GNN_NOISE/CLS_modelo3_ft_v2/inference.py`
+  - `gnn/GNN_NOISE/REG_o4a2_ft_v2/train.py`
+  - `gnn/GNN_NOISE/REG_o4a2_ft_v2/inference.py`
+  - `gnn/GNN_CMEI_INFERENCE/inference_gnn_cmei.py`
+
+## 2026-04-04 - `0404训练日志` 吸收与 `v2` 完整曲线
+- 已吸收根目录 `0404训练日志.txt`，但最终记录继续以本地真实 `outputs/*.json` 为准。
+- 本轮已真正补齐 `clean / 40dB / 30dB / 20dB` 四档 `CLS / REG / joint` 结果：
+  - clean：`CLS macro_f1=0.9149`，`REG mae_changed=24.2457`，`joint CMEI=93.49`
+  - `40dB`：`CLS macro_f1=0.9078`，`REG mae_changed=25.3754`，`joint CMEI=92.81`
+  - `30dB`：`CLS macro_f1=0.8903`，`REG mae_changed=34.0454`，`joint CMEI=90.44`
+  - `20dB`：`CLS macro_f1=0.7582`，`REG mae_changed=58.1169`，`joint CMEI=80.42`
+- 与 `rand_boundary` 对比：
+  - clean：`91.01 -> 93.49`
+  - `40dB`：`90.83 -> 92.81`
+  - `30dB`：`89.62 -> 90.44`
+  - `20dB`：`82.56 -> 80.42`
+- 当前判断修正为：
+  - `v2` 的优势已经明确落在 clean 到中噪声区间
+  - 但 `20dB` 端点仍由 `rand_boundary` 保持领先
+  - 后续如果继续迭代 `v2`，应优先针对最重噪声下的数量与定位退化做增强，而不是继续只抠 clean 指标
+- 本轮已新增正式可视化脚本与底表：
+  - `plot_noise_v2_summary.py`
+  - `noise_v2_summary_metrics.json`
+- 当前正式图像输出：
+  - `Figure/noise_v2_summary.png`
+  - `Figure/noise_v2_summary.pdf`
+- 旧图：
+  - `rand_boundary_robustness_curve.svg`
+  已删除，不再保留。

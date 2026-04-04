@@ -1628,3 +1628,138 @@
   - 当前规则文件
   - 当前最佳路线说明
   - 各轮代码与文档演进历史
+
+## 2026-04-02 v86
+- 已补充项目 Git 操作规范，用于固定“实验分支如何开、当前最佳版本如何升级与打 tag”。
+- 当前正式规则已写入：
+  - `RULES.md`
+- 固定口径如下：
+  - `main` 只保存稳定、可回退、可作为正式路线的状态
+  - 日常实验默认不直接在 `main` 上推进
+  - 新实验默认新建 `codex/` 前缀分支
+  - 推荐分支命名格式为 `codex/<模块>-<版本>-<目的>`
+- 当某次实验准备升级为“当前最佳版本”时，要求同步完成：
+  - 稳定代码进入 `main`
+  - 更新 `CURRENT_BEST.md`
+  - 追加更新根目录与对应子目录 `README.md / Log.md`
+  - 新增可读 Git tag 作为恢复锚点
+- 推荐 tag 命名格式固定为：
+  - `best-<模块>-<版本>-<日期>`
+- 同时明确：
+  - tag 只新增，不覆盖旧 tag
+  - 未形成正式结论的版本停留在实验分支，不进入 `main`
+
+## 2026-04-03 v87
+- 已读取并吸收根目录 `0402噪声v2训练日志.txt`，并按正式文档口径提炼记录，未直接转抄整段终端日志。
+- `GNN_NOISE v2` 本轮云端已确认结果：
+  - clean `CLS test_macro_f1=0.9149`
+  - clean `REG mae_all=0.4664`，`mae_changed=24.2457`，`count_macro_f1=0.8349`
+  - clean joint `CMEI=93.49`
+  - `40dB CLS test_macro_f1=0.9078`
+  - `40dB REG mae_all=0.5317`，`mae_changed=25.3754`，`count_macro_f1=0.8342`
+- `30dB / 20dB` 本轮未产出有效结果，已定位为云端命令中的 `--dataset-tag ${TAG}` 未展开，属于验证命令链问题，不是模型结构错误。
+- 为避免重复出错，已新增：
+  - `gnn/GNN_NOISE/run_noise_eval_suite.py`
+- 该脚本负责：
+  - 统一串行执行 clean / `40dB` / `30dB` / `20dB` 的 `CLS / REG / joint` 评估
+  - 自动按噪声等级保存单模型评估 `json`
+  - 支持 `--dry-run` 先打印完整命令
+- 同时已在以下入口补充 `dataset-tag` 空值与未展开占位符的明确报错：
+  - `gnn/GNN_NOISE/CLS_modelo3_ft_v2/train.py`
+  - `gnn/GNN_NOISE/CLS_modelo3_ft_v2/inference.py`
+  - `gnn/GNN_NOISE/REG_o4a2_ft_v2/train.py`
+  - `gnn/GNN_NOISE/REG_o4a2_ft_v2/inference.py`
+  - `gnn/GNN_CMEI_INFERENCE/inference_gnn_cmei.py`
+
+## 2026-04-03 v88
+- 已吸收根目录 `拓展训练日志.txt`，并与本地 `GNN_EXPAND` 各阶段真实输出文件交叉核对。
+- 当前四阶段结果为：
+  - `stage1_square_10x10`: `CLS macro_f1=0.8581`，`REG mae_changed=37.0220`，`joint CMEI=89.30`
+  - `stage2_rect_6x10`: `CLS macro_f1=0.9018`，`REG mae_changed=16.9012`，`joint CMEI=94.38`
+  - `stage3_honeycomb_63`: `CLS macro_f1=0.8671`，`REG mae_changed=31.3267`，`joint CMEI=91.05`
+  - `stage4_transfer_circlecut_69`: `CLS macro_f1=0.8818`，`REG mae_changed=43.2324`，`joint CMEI=88.42`
+- 当前判断：
+  - `stage2_rect_6x10` 是本轮扩展表现最好的阶段
+  - `stage4_circlecut_69` 的主要瓶颈在回归与联合推理，不规则拓扑仍最难
+- 已发现并修正一处真实代码问题：
+  - `stage4 transfer` 的默认 warm start 路径原先错误指向 `training_data64Nodes_2`
+  - 现已改为正确的 `stage1_square_10x10/.../outputs/square_10x10/model_last.pt`
+- 因此本轮已记录的 `stage4` 结果不能直接当作最终 transfer 结论，而应视为当前不规则拓扑基线。
+- 为便于后续汇报与比较，已新增：
+  - `gnn/GNN_EXPAND/plot_expand_summary.py`
+  - `gnn/GNN_EXPAND/expand_summary_metrics.json`
+  - `gnn/GNN_EXPAND/expand_summary.svg`
+- v89
+  - 将 `GNN_EXPAND` 汇总图从手写 `svg` 版切换为 `matplotlib` 正式版。
+  - 新增正式输出：
+    - `gnn/GNN_EXPAND/expand_summary.png`
+    - `gnn/GNN_EXPAND/expand_summary.pdf`
+  - 保留 `expand_summary_metrics.json` 作为配套汇总底表。
+  - 删除旧 `gnn/GNN_EXPAND/expand_summary.svg`。
+- v90
+  - `GNN_EXPAND` 新增 `Figure` 目录，统一承接汇总图与拓扑示意图。
+  - 汇总图位置调整为：
+    - `gnn/GNN_EXPAND/Figure/expand_summary.png`
+    - `gnn/GNN_EXPAND/Figure/expand_summary.pdf`
+  - 新增四张拓扑结构图：
+    - `topology_square_10x10.png`
+    - `topology_rect_6x10.png`
+    - `topology_honeycomb_63.png`
+    - `topology_circlecut_69.png`
+
+## 2026-04-04 v91
+- 已读取并吸收根目录 `0404训练日志.txt`，但正式记录继续以本地真实 `outputs/*.json` 为准，不直接转抄原始终端日志。
+
+### `GNN_NOISE v2` 完整曲线补齐
+- 这次真正补齐了 `clean / 40dB / 30dB / 20dB` 全部 `CLS / REG / joint` 结果：
+  - clean：`CLS macro_f1=0.9149`，`REG mae_changed=24.2457`，`joint CMEI=93.49`
+  - `40dB`：`CLS macro_f1=0.9078`，`REG mae_changed=25.3754`，`joint CMEI=92.81`
+  - `30dB`：`CLS macro_f1=0.8903`，`REG mae_changed=34.0454`，`joint CMEI=90.44`
+  - `20dB`：`CLS macro_f1=0.7582`，`REG mae_changed=58.1169`，`joint CMEI=80.42`
+- 与上一轮 `rand_boundary` 相比：
+  - clean：`91.01 -> 93.49`
+  - `40dB`：`90.83 -> 92.81`
+  - `30dB`：`89.62 -> 90.44`
+  - `20dB`：`82.56 -> 80.42`
+- 当前更准确的判断是：
+  - `structured boundary v2` 已经把优势稳定推进到 clean 与中等噪声区间
+  - 但在最重的 `20dB` 上，它还没有超过 `rand_boundary`
+  - 因此 noisy 路线当前不再适合被简单概括为“单条全区间绝对最优”，而更像是“`v2` 主打 clean~中噪声，`rand_boundary` 保留最强 `20dB` 端点”
+- 已新增并重做正式汇总图：
+  - `gnn/GNN_NOISE/plot_noise_v2_summary.py`
+  - `gnn/GNN_NOISE/noise_v2_summary_metrics.json`
+  - `gnn/GNN_NOISE/Figure/noise_v2_summary.png`
+  - `gnn/GNN_NOISE/Figure/noise_v2_summary.pdf`
+- 已删除旧噪声图：
+  - `gnn/GNN_NOISE/rand_boundary_robustness_curve.svg`
+
+### `GNN_EXPAND` 真正 transfer 结果补齐
+- 本轮 `stage4_transfer_circlecut_69` 已按修正后的默认路径成功加载 `stage1` 权重：
+  - `CLS warm_start.loaded=36`
+  - `REG warm_start.loaded=36`
+- 最新真实结果为：
+  - `CLS macro_f1=0.8928`
+  - `REG mae_changed=36.1173`
+  - `joint CMEI=91.14`
+- 相比 2026-04-03 记录的未成功 transfer 基线：
+  - `macro_f1: 0.8818 -> 0.8928`
+  - `mae_changed: 43.2324 -> 36.1173`
+  - `CMEI: 88.42 -> 91.14`
+- 当前扩展线判断修正为：
+  - `stage2_rect_6x10` 仍是整体最强阶段
+  - 但 `stage4_circlecut_69` 在真实 transfer 下已经回到可用区间，不再应被描述为“明显失败”
+  - 当前最主要难点从“transfer 是否生效”转为“不规则拓扑下怎样进一步压低回归误差”
+- `EXPAND` 汇总图与拓扑图已按最新数据重生成：
+  - `gnn/GNN_EXPAND/plot_expand_summary.py`
+  - `gnn/GNN_EXPAND/plot_expand_topologies.py`
+  - `gnn/GNN_EXPAND/expand_summary_metrics.json`
+  - `gnn/GNN_EXPAND/Figure/expand_summary.png`
+  - `gnn/GNN_EXPAND/Figure/expand_summary.pdf`
+  - `gnn/GNN_EXPAND/Figure/topology_square_10x10.png`
+  - `gnn/GNN_EXPAND/Figure/topology_rect_6x10.png`
+  - `gnn/GNN_EXPAND/Figure/topology_honeycomb_63.png`
+  - `gnn/GNN_EXPAND/Figure/topology_circlecut_69.png`
+- 旧版 `EXPAND` 同名图片已直接被最新版本覆盖。
+
+### 文件清理
+- `0404训练日志.txt` 的内容已吸收到正式文档，现已删除。

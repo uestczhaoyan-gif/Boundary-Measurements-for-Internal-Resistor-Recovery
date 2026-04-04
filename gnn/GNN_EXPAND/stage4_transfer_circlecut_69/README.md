@@ -26,3 +26,20 @@
 - `circlecut_69` 的真实数据规模为：
   - `24` 个外部节点
   - `28` 组激励
+
+## 2026-04-03 当前结果与 transfer 口径
+- 当前结果：
+  - `CLS macro_f1=0.8818`
+  - `REG mae_all=0.8202`
+  - `REG mae_changed=43.2324`
+  - `joint CMEI=88.42`
+- 当前解释：
+  - 不规则裁角圆形拓扑下，分类仍能保持在较高水平
+  - 但回归误差和联合指标是四阶段中最弱，说明当前主要难点仍集中在不规则拓扑的内部重建
+- 这一阶段必须特别说明：
+  - 本轮记录时，默认 transfer warm start 路径写错，实际没有成功加载 `stage1_square_10x10` 权重
+  - 因此当前结果不能直接当作最终 transfer 结论，而应先视作当前不规则拓扑结果基线
+- 本轮已修正默认路径为：
+  - `gnn/GNN_EXPAND/stage1_square_10x10/cls/outputs/square_10x10/model_last.pt`
+  - `gnn/GNN_EXPAND/stage1_square_10x10/reg/outputs/square_10x10/model_last.pt`
+- 后续重跑时，才适合正式比较 `stage1 -> stage4` transfer 效果。

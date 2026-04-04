@@ -43,6 +43,32 @@ GRID = 8
 DEFAULT_MAIN_DATA_PATH = "data/training_data64Nodes_2.csv"
 
 
+def ensure_cli_option_has_value(argv, option_name):
+    for idx, token in enumerate(argv[1:], start=1):
+        if token != option_name:
+            continue
+        next_idx = idx + 1
+        if next_idx >= len(argv):
+            raise SystemExit(
+                f"{Path(argv[0]).name}: {option_name} is missing a value. "
+                "If you used TAG, make sure it has been set before running this command."
+            )
+        next_token = argv[next_idx]
+        if next_token == "" or next_token.startswith("-"):
+            raise SystemExit(
+                f"{Path(argv[0]).name}: {option_name} did not receive a usable value. "
+                "If you used ${TAG}, it likely expanded to an empty string."
+            )
+
+
+def validate_dataset_tag_arg(raw_tag):
+    if raw_tag and any(ch in raw_tag for ch in "$ {}"):
+        raise SystemExit(
+            f"{Path(sys.argv[0]).name}: --dataset-tag looks like an unexpanded placeholder: {raw_tag!r}. "
+            "Please replace it with the real run tag."
+        )
+
+
 def sanitize_dataset_tag(raw_tag):
     safe = re.sub(r"[^0-9A-Za-z._-]+", "_", raw_tag.strip())
     safe = safe.strip("._-")
@@ -215,6 +241,7 @@ def extract_edge_values(delta, ids):
 
 
 def main():
+    ensure_cli_option_has_value(sys.argv, "--dataset-tag")
     parser = argparse.ArgumentParser(description="Unified GNN CLS+REG inference with CMEI evaluation.")
     parser.add_argument("--data-path", default=DEFAULT_MAIN_DATA_PATH)
     parser.add_argument("--dataset-tag", default="")
@@ -236,6 +263,7 @@ def main():
     args = parser.parse_args()
 
     script_dir = Path(__file__).resolve().parent
+    validate_dataset_tag_arg(args.dataset_tag)
     data_path = resolve_input_data_path(args.data_path, script_dir)
     dataset_tag = sanitize_dataset_tag(args.dataset_tag or data_path.stem)
     out_dir = resolve_output_dir(args.out_dir, script_dir) / dataset_tag

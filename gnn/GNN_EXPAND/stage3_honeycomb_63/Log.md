@@ -24,3 +24,16 @@
 - 约束保持不变：
   - 激励只使用外部节点
   - 测量只输出外部节点电压
+
+## 2026-04-03 训练结果
+- `stage3_honeycomb_63` 当前结果：
+  - `CLS macro_f1=0.8671`
+  - `REG mae_all=0.4831`
+  - `REG mae_changed=31.3267`
+  - `joint CMEI=91.05`
+- 当前判断：
+  - 蜂窝状拓扑下当前方法仍保持可用
+  - 但回归误差明显高于 `stage2_rect_6x10`
+- 口径补充：
+  - `CLS warm_start.loaded=0`
+  - `REG warm_start.loaded=36`

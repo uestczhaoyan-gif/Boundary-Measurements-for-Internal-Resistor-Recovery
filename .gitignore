@@ -2,6 +2,7 @@
 .claude/
 .vendor_torchpy311/
 .vendor/
+.vendor_plot/
 .venv/
 venv/
 

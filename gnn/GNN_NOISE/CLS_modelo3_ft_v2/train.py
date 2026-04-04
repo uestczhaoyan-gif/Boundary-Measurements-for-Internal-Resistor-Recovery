@@ -38,6 +38,32 @@ DEFAULT_MAIN_DATA_PATH = "../../../data/training_data64Nodes_2.csv"
 DEFAULT_PRETRAINED_MODEL_PATH = "../CLS_modelo3_ft/outputs/training_data64Nodes_2_noiseft_rand_boundary_20260401/model_last.pt"
 
 
+def ensure_cli_option_has_value(argv, option_name):
+    for idx, token in enumerate(argv[1:], start=1):
+        if token != option_name:
+            continue
+        next_idx = idx + 1
+        if next_idx >= len(argv):
+            raise SystemExit(
+                f"{Path(argv[0]).name}: {option_name} is missing a value. "
+                "If you used TAG, make sure it has been set before running this command."
+            )
+        next_token = argv[next_idx]
+        if next_token == "" or next_token.startswith("-"):
+            raise SystemExit(
+                f"{Path(argv[0]).name}: {option_name} did not receive a usable value. "
+                "If you used ${TAG}, it likely expanded to an empty string."
+            )
+
+
+def validate_dataset_tag_arg(raw_tag):
+    if raw_tag and any(ch in raw_tag for ch in "$ {}"):
+        raise SystemExit(
+            f"{Path(sys.argv[0]).name}: --dataset-tag looks like an unexpanded placeholder: {raw_tag!r}. "
+            "Please replace it with the real run tag."
+        )
+
+
 def set_global_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -80,6 +106,7 @@ def resolve_runtime_path(raw_path, script_dir):
 
 def resolve_dataset_runtime_paths(args, script_dir, default_cache_path):
     data_path = resolve_input_data_path(args.data_path, script_dir)
+    validate_dataset_tag_arg(args.dataset_tag)
     dataset_tag = sanitize_dataset_tag(args.dataset_tag or data_path.stem)
 
     if args.cache_path == default_cache_path:
@@ -621,6 +648,7 @@ def run(args):
 
 
 def parse_args():
+    ensure_cli_option_has_value(sys.argv, "--dataset-tag")
     parser = argparse.ArgumentParser(description="64Nodes noisy fine-tuning for physics-informed GNN classifier modelo3.")
     parser.add_argument("--data-path", default=DEFAULT_MAIN_DATA_PATH)
     parser.add_argument("--cache-path", default="./cache_dataset_cls_graphattn.npz")

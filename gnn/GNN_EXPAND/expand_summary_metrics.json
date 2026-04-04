@@ -1,0 +1,139 @@
+{
+  "summary_name": "GNN_EXPAND latest stage results",
+  "notes": [
+    "Metrics are read from each stage's actual outputs/ directory.",
+    "The official visualization is now emitted as PNG and PDF.",
+    "Stage4 current run successfully loaded Stage1 warm-start weights for both cls and reg.",
+    "Stage1/2/3 classifier warm-start weights were not loaded in the current recorded run."
+  ],
+  "stages": [
+    {
+      "stage_name": "stage1_square_10x10",
+      "label_lines": [
+        "Stage1",
+        "Square 10x10",
+        "100 nodes"
+      ],
+      "short_label": "Stage1 Square 10x10",
+      "dataset_tag": "square_10x10",
+      "topology_title": "Stage1 Square 10x10",
+      "num_nodes": 100,
+      "num_resistors": 180,
+      "cls_macro_f1": 0.8580938434254521,
+      "cls_warm_loaded": 0,
+      "cls_pretrained_model_path": "/root/autodl-tmp/64Nodes/gnn/GNN_EXPAND/stage1_square_10x10/cls/gnn/GNN_CLS/modelo3/outputs/training_data64Nodes_2/model_last.pt",
+      "reg_mae_all": 0.46942989518907335,
+      "reg_mae_changed": 37.0220358601888,
+      "reg_count_macro_f1": 0.7812205758190264,
+      "reg_warm_loaded": 36,
+      "reg_pretrained_model_path": "/root/autodl-tmp/64Nodes/gnn/GNN_REG/o4a2/outputs/training_data64Nodes_2/model_last.pt",
+      "joint_cmei": 89.30461154567907,
+      "joint_num_accuracy": 0.826,
+      "joint_macro_f1": 0.8580938434254521,
+      "joint_id_recall": 0.8554666666666667,
+      "joint_mse_all_edges": 58.48759078979492,
+      "score_components": {
+        "S_num": 82.6,
+        "S_F1": 85.80938434254521,
+        "S_id": 85.54666666666667,
+        "S_mse": 99.41512409210205
+      }
+    },
+    {
+      "stage_name": "stage2_rect_6x10",
+      "label_lines": [
+        "Stage2",
+        "Rect 6x10",
+        "60 nodes"
+      ],
+      "short_label": "Stage2 Rect 6x10",
+      "dataset_tag": "rect_6x10",
+      "topology_title": "Stage2 Rectangular 6x10",
+      "num_nodes": 60,
+      "num_resistors": 104,
+      "cls_macro_f1": 0.9017818427691312,
+      "cls_warm_loaded": 0,
+      "cls_pretrained_model_path": "/root/autodl-tmp/64Nodes/gnn/GNN_EXPAND/stage2_rect_6x10/cls/gnn/GNN_CLS/modelo3/outputs/training_data64Nodes_2/model_last.pt",
+      "reg_mae_all": 0.4110055428284865,
+      "reg_mae_changed": 16.901152014160157,
+      "reg_count_macro_f1": 0.9376304099143787,
+      "reg_warm_loaded": 36,
+      "reg_pretrained_model_path": "/root/autodl-tmp/64Nodes/gnn/GNN_REG/o4a2/outputs/training_data64Nodes_2/model_last.pt",
+      "joint_cmei": 94.37835859373627,
+      "joint_num_accuracy": 0.878,
+      "joint_macro_f1": 0.9017818427691312,
+      "joint_id_recall": 0.9445333333333333,
+      "joint_mse_all_edges": 33.234127044677734,
+      "score_components": {
+        "S_num": 87.8,
+        "S_F1": 90.17818427691311,
+        "S_id": 94.45333333333333,
+        "S_mse": 99.66765872955322
+      }
+    },
+    {
+      "stage_name": "stage3_honeycomb_63",
+      "label_lines": [
+        "Stage3",
+        "Honeycomb",
+        "63 nodes"
+      ],
+      "short_label": "Stage3 Honeycomb 63",
+      "dataset_tag": "honeycomb_63",
+      "topology_title": "Stage3 Honeycomb 7x9",
+      "num_nodes": 63,
+      "num_resistors": 158,
+      "cls_macro_f1": 0.8670782056223963,
+      "cls_warm_loaded": 0,
+      "cls_pretrained_model_path": "/root/autodl-tmp/64Nodes/gnn/GNN_EXPAND/stage3_honeycomb_63/cls/gnn/GNN_CLS/modelo3/outputs/training_data64Nodes_2/model_last.pt",
+      "reg_mae_all": 0.48309956784791586,
+      "reg_mae_changed": 31.32668329671224,
+      "reg_count_macro_f1": 0.820019548965804,
+      "reg_warm_loaded": 36,
+      "reg_pretrained_model_path": "/root/autodl-tmp/64Nodes/gnn/GNN_REG/o4a2/outputs/training_data64Nodes_2/model_last.pt",
+      "joint_cmei": 91.04764711133382,
+      "joint_num_accuracy": 0.834,
+      "joint_macro_f1": 0.8670782056223963,
+      "joint_id_recall": 0.8917333333333334,
+      "joint_mse_all_edges": 45.953102111816406,
+      "score_components": {
+        "S_num": 83.39999999999999,
+        "S_F1": 86.70782056223963,
+        "S_id": 89.17333333333333,
+        "S_mse": 99.54046897888183
+      }
+    },
+    {
+      "stage_name": "stage4_transfer_circlecut_69",
+      "label_lines": [
+        "Stage4",
+        "Circle-Cut",
+        "69 nodes"
+      ],
+      "short_label": "Stage4 Circle-Cut 69",
+      "dataset_tag": "circlecut_69",
+      "topology_title": "Stage4 Circle-Cut 9x9",
+      "num_nodes": 69,
+      "num_resistors": 120,
+      "cls_macro_f1": 0.8927910436276143,
+      "cls_warm_loaded": 36,
+      "cls_pretrained_model_path": "/root/autodl-tmp/64Nodes/gnn/GNN_EXPAND/stage1_square_10x10/cls/outputs/square_10x10/model_last.pt",
+      "reg_mae_all": 0.6576747581481933,
+      "reg_mae_changed": 36.11730673421224,
+      "reg_count_macro_f1": 0.794456868913336,
+      "reg_warm_loaded": 36,
+      "reg_pretrained_model_path": "/root/autodl-tmp/64Nodes/gnn/GNN_EXPAND/stage1_square_10x10/reg/outputs/square_10x10/model_last.pt",
+      "joint_cmei": 91.13944016562434,
+      "joint_num_accuracy": 0.867,
+      "joint_macro_f1": 0.8927910436276143,
+      "joint_id_recall": 0.8746666666666667,
+      "joint_mse_all_edges": 81.36405181884766,
+      "score_components": {
+        "S_num": 86.7,
+        "S_F1": 89.27910436276143,
+        "S_id": 87.46666666666667,
+        "S_mse": 99.18635948181152
+      }
+    }
+  ]
+}

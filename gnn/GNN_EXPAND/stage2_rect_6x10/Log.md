@@ -23,3 +23,16 @@
 - 约束保持不变：
   - 激励只使用外部节点
   - 测量只输出外部节点电压
+
+## 2026-04-03 训练结果
+- `stage2_rect_6x10` 当前结果：
+  - `CLS macro_f1=0.9018`
+  - `REG mae_all=0.4110`
+  - `REG mae_changed=16.9012`
+  - `joint CMEI=94.38`
+- 当前判断：
+  - 这是本轮最佳扩展阶段
+  - 非正方形规则网格并未成为当前方法的主要障碍
+- 口径补充：
+  - `CLS warm_start.loaded=0`
+  - `REG warm_start.loaded=36`

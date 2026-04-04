@@ -253,3 +253,77 @@ python gnn/inference_gnn_cmei.py \
 - 说明：
   - 单模型训练与推理结果仍保留在各自 `v2/outputs/`
   - 不会迁入 `GNN_CMEI_INFERENCE`
+
+## 十、2026-04-03 `v2` 云端日志吸收与验证闭环
+- 已吸收根目录 `0402噪声v2训练日志.txt` 的有效结果，但未把原始终端流水整段转抄到正式文档。
+- 本轮云端 `v2` 已确认的结果为：
+  - clean `CLS test_macro_f1=0.9149`
+  - clean `REG mae_all=0.4664`，`mae_changed=24.2457`，`count_macro_f1=0.8349`
+  - clean joint `CMEI=93.49`
+  - `40dB CLS test_macro_f1=0.9078`
+  - `40dB REG mae_all=0.5317`，`mae_changed=25.3754`，`count_macro_f1=0.8342`
+- `30dB / 20dB` 本轮没有得到有效结果，原因已经定位为：
+  - 验证命令中的 `--dataset-tag ${TAG}` 在当时没有展开成实际 run tag
+  - 参数解析在推理前直接报错
+  - 因此这不是模型结构错误，也不是 `noise-std` 本身不兼容
+- 为避免后续继续手工拼接三组命令，当前已新增：
+  - `gnn/GNN_NOISE/run_noise_eval_suite.py`
+- 推荐先做命令预览：
+```bash
+python gnn/GNN_NOISE/run_noise_eval_suite.py \
+  --run-tag training_data64Nodes_2_noiseft_struct_boundary_v2_20260402 \
+  --dry-run
+```
+- 正式补跑 clean / `40dB` / `30dB` / `20dB`：
+```bash
+python gnn/GNN_NOISE/run_noise_eval_suite.py \
+  --run-tag training_data64Nodes_2_noiseft_struct_boundary_v2_20260402
+```
+- 该脚本会统一执行：
+  - `CLS inference`
+  - `REG inference`
+  - `joint CMEI inference`
+- 并自动把单模型结果保存为：
+  - `inference_eval_clean.json`
+  - `noise_eval_40dB.json`
+  - `noise_eval_30dB.json`
+  - `noise_eval_20dB.json`
+- 同时已在以下入口补充更明确的 `dataset-tag` 报错：
+  - `CLS_modelo3_ft_v2/train.py`
+  - `CLS_modelo3_ft_v2/inference.py`
+  - `REG_o4a2_ft_v2/train.py`
+  - `REG_o4a2_ft_v2/inference.py`
+  - `gnn/GNN_CMEI_INFERENCE/inference_gnn_cmei.py`
+
+## 十一、2026-04-04 `v2` 完整曲线与新版汇总图
+- 已吸收根目录 `0404训练日志.txt`，但本目录的正式数值继续以本地真实 `outputs/*.json` 为准。
+- `run_noise_eval_suite.py` 本轮已真正把 `clean / 40dB / 30dB / 20dB` 四档结果全部补齐：
+  - clean：`CLS macro_f1=0.9149`，`REG mae_changed=24.2457`，`joint CMEI=93.49`
+  - `40dB`：`CLS macro_f1=0.9078`，`REG mae_changed=25.3754`，`joint CMEI=92.81`
+  - `30dB`：`CLS macro_f1=0.8903`，`REG mae_changed=34.0454`，`joint CMEI=90.44`
+  - `20dB`：`CLS macro_f1=0.7582`，`REG mae_changed=58.1169`，`joint CMEI=80.42`
+
+### 当前判断
+- 相比上一轮 `rand_boundary`：
+  - clean / `40dB` / `30dB` 三档都更强
+  - `20dB` 仍低于 `rand_boundary` 的 `CMEI=82.56`
+- 因此当前更准确的解释是：
+  - `v2` 代表“clean 到中噪声区间”的更优带噪主线
+  - `rand_boundary` 仍保留“极重噪声端点”的最佳结果
+- 从分量上看，`20dB` 下最明显的衰减来自：
+  - 数量判断 `S_num`
+  - 分类分数 `S_F1`
+  - 定位召回 `S_id`
+  说明 `v2` 在极重噪声下并不是单纯幅值回归变差，而是整条 `CLS + REG + joint` 链路都开始退化
+
+### 可视化
+- 已新增正式科研风汇总脚本：
+  - `gnn/GNN_NOISE/plot_noise_v2_summary.py`
+- 配套底表：
+  - `gnn/GNN_NOISE/noise_v2_summary_metrics.json`
+- 当前正式输出：
+  - `gnn/GNN_NOISE/Figure/noise_v2_summary.png`
+  - `gnn/GNN_NOISE/Figure/noise_v2_summary.pdf`
+- 旧图：
+  - `rand_boundary_robustness_curve.svg`
+  已删除，不再作为当前正式图像输出。

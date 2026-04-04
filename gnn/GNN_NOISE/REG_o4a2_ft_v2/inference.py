@@ -19,6 +19,32 @@ BASE_R = 1000.0
 DEFAULT_MAIN_DATA_PATH = "../../../data/training_data64Nodes_2.csv"
 
 
+def ensure_cli_option_has_value(argv, option_name):
+    for idx, token in enumerate(argv[1:], start=1):
+        if token != option_name:
+            continue
+        next_idx = idx + 1
+        if next_idx >= len(argv):
+            raise SystemExit(
+                f"{Path(argv[0]).name}: {option_name} is missing a value. "
+                "If you used TAG, make sure it has been set before running this command."
+            )
+        next_token = argv[next_idx]
+        if next_token == "" or next_token.startswith("-"):
+            raise SystemExit(
+                f"{Path(argv[0]).name}: {option_name} did not receive a usable value. "
+                "If you used ${TAG}, it likely expanded to an empty string."
+            )
+
+
+def validate_dataset_tag_arg(raw_tag):
+    if raw_tag and any(ch in raw_tag for ch in "$ {}"):
+        raise SystemExit(
+            f"{Path(sys.argv[0]).name}: --dataset-tag looks like an unexpanded placeholder: {raw_tag!r}. "
+            "Please replace it with the real run tag."
+        )
+
+
 def sanitize_dataset_tag(raw_tag):
     safe = re.sub(r"[^0-9A-Za-z._-]+", "_", raw_tag.strip())
     safe = safe.strip("._-")
@@ -62,6 +88,7 @@ def resolve_default_artifact_path(root_dir, filename, requested_tag, data_path):
 
 def resolve_inference_runtime_paths(args, script_dir, default_cache_path):
     data_path = resolve_input_data_path(args.data_path, script_dir)
+    validate_dataset_tag_arg(args.dataset_tag)
     dataset_tag = sanitize_dataset_tag(args.dataset_tag or data_path.stem)
 
     if args.cache_path == default_cache_path:
@@ -128,6 +155,7 @@ def select_focus_indices(test_idx, true_counts, num_samples, seed, focus_high_ch
 
 
 def main():
+    ensure_cli_option_has_value(sys.argv, "--dataset-tag")
     parser = argparse.ArgumentParser(description="Inference for 64Nodes physics-informed GNN regression o4a2.")
     parser.add_argument("--data-path", default=DEFAULT_MAIN_DATA_PATH)
     parser.add_argument("--dataset-tag", default="", help="数据集标签；默认取 data-path 文件名。")

@@ -1,0 +1,87 @@
+{
+  "summary_name": "GNN_NOISE v2 latest robustness summary",
+  "run_tag": "training_data64Nodes_2_noiseft_struct_boundary_v2_20260402",
+  "notes": [
+    "Metrics are read from actual single-model outputs and GNN_CMEI_INFERENCE joint outputs.",
+    "Noise is injected only on measurable boundary-node voltages.",
+    "This figure reflects the complete v2 curve for clean, 40 dB, 30 dB and 20 dB."
+  ],
+  "levels": [
+    {
+      "label": "Clean",
+      "noise_std": 0.0,
+      "cls_macro_f1": 0.9148832128730029,
+      "reg_mae_all": 0.4664047360420227,
+      "reg_mae_changed": 24.245683670043945,
+      "reg_count_macro_f1": 0.834868043277876,
+      "joint_cmei": 93.4894045600791,
+      "joint_num_accuracy": 0.894,
+      "joint_macro_f1": 0.9148832128730029,
+      "joint_id_recall": 0.9130666666666667,
+      "joint_mse_all_edges": 55.50343322753906,
+      "joint_scores": {
+        "S_num": 89.4,
+        "S_F1": 91.4883212873003,
+        "S_id": 91.30666666666667,
+        "S_mse": 99.4449656677246
+      }
+    },
+    {
+      "label": "40 dB",
+      "noise_std": 0.01,
+      "cls_macro_f1": 0.9077881699984583,
+      "reg_mae_all": 0.5317277908325195,
+      "reg_mae_changed": 25.375398635864258,
+      "reg_count_macro_f1": 0.8342019503818143,
+      "joint_cmei": 92.81174711815315,
+      "joint_num_accuracy": 0.885,
+      "joint_macro_f1": 0.9077881699984583,
+      "joint_id_recall": 0.9024,
+      "joint_mse_all_edges": 58.691810607910156,
+      "joint_scores": {
+        "S_num": 88.5,
+        "S_F1": 90.77881699984583,
+        "S_id": 90.24,
+        "S_mse": 99.41308189392089
+      }
+    },
+    {
+      "label": "30 dB",
+      "noise_std": 0.0316227766,
+      "cls_macro_f1": 0.8902801957067994,
+      "reg_mae_all": 0.7706325054168701,
+      "reg_mae_changed": 34.045413970947266,
+      "reg_count_macro_f1": 0.7279302473262177,
+      "joint_cmei": 90.44312657807839,
+      "joint_num_accuracy": 0.864,
+      "joint_macro_f1": 0.8902801957067994,
+      "joint_id_recall": 0.8597333333333333,
+      "joint_mse_all_edges": 86.80323028564453,
+      "joint_scores": {
+        "S_num": 86.4,
+        "S_F1": 89.02801957067994,
+        "S_id": 85.97333333333333,
+        "S_mse": 99.13196769714355
+      }
+    },
+    {
+      "label": "20 dB",
+      "noise_std": 0.1,
+      "cls_macro_f1": 0.7582096853556801,
+      "reg_mae_all": 1.4926964044570923,
+      "reg_mae_changed": 58.11690902709961,
+      "reg_count_macro_f1": 0.5639658463707784,
+      "joint_cmei": 80.41543796934073,
+      "joint_num_accuracy": 0.712,
+      "joint_macro_f1": 0.7582096853556801,
+      "joint_id_recall": 0.7226666666666667,
+      "joint_mse_all_edges": 181.45799255371094,
+      "joint_scores": {
+        "S_num": 71.2,
+        "S_F1": 75.82096853556801,
+        "S_id": 72.26666666666667,
+        "S_mse": 98.1854200744629
+      }
+    }
+  ]
+}

@@ -25,6 +25,14 @@ NUM_CLASSES = 4
 DEFAULT_EXCITATIONS = 32
 BASE_R = 1000.0
 DEFAULT_SOURCE_GRID_SIZE = 8
+ROOT_ANCHORED_PREFIXES = {
+    "data",
+    "gnn",
+    "history",
+    "inverse_identifiability",
+    "mlp",
+    "scripts",
+}
 
 
 try:
@@ -92,6 +100,10 @@ def resolve_input_data_path(raw_path: str, script_dir: Path) -> Path:
     path = Path(raw_path)
     if path.is_absolute():
         return path.resolve()
+    if path.parts and path.parts[0] in ROOT_ANCHORED_PREFIXES:
+        candidate = (WORKSPACE_ROOT / path).resolve()
+        if candidate.exists():
+            return candidate
     bases = [Path.cwd(), script_dir, script_dir.parent, script_dir.parents[1], script_dir.parents[2], script_dir.parents[3]]
     for base in bases:
         candidate = (base / path).resolve()
@@ -106,6 +118,8 @@ def resolve_runtime_path(raw_path: str, script_dir: Path) -> str:
     path = Path(raw_path)
     if path.is_absolute():
         return str(path.resolve())
+    if path.parts and path.parts[0] in ROOT_ANCHORED_PREFIXES:
+        return str((WORKSPACE_ROOT / path).resolve())
     bases = [Path.cwd(), script_dir, script_dir.parent, script_dir.parents[1], script_dir.parents[2], script_dir.parents[3]]
     for base in bases:
         candidate = (base / path).resolve()

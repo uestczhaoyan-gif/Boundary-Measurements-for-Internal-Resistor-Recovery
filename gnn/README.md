@@ -921,3 +921,117 @@
   - 代码修改前先呈现思路的执行规则
   - 版本更新优先复制原模型、不直接改旧模型的原则
 - 旧的 `DOC_RULES.md` 仅保留为历史兼容入口，不再作为主维护文件。
+
+## 2026-04-02 `gnn` Git 分支与 Tag 规范
+- `gnn` 主线后续默认遵循根目录 `RULES.md` 中新增的 Git 分支与 tag 规则。
+- 对 `gnn` 相关实验，默认不直接在 `main` 上推进，而是新建：
+  - `codex/`
+  前缀实验分支。
+- 推荐分支命名格式：
+  - `codex/<模块>-<版本>-<目的>`
+- 对 `gnn` 常见示例：
+  - `codex/gnn-noise-v2-randboundary`
+  - `codex/expand-stage1-square10x10`
+  - `codex/cmei-v2-arbitration`
+- 当 `gnn` 某一轮实验准备升级为“当前最佳版本”时，应同时完成：
+  - 稳定代码进入 `main`
+  - 更新根目录 `CURRENT_BEST.md`
+  - 追加更新根目录与 `gnn` 相关 `README.md / Log.md`
+  - 新增一个 `best-*` Git tag 作为恢复锚点
+- 未形成正式结论的 `gnn` 实验版本只保留在实验分支，不进入 `main`。
+
+## 2026-04-03 `GNN_NOISE v2` 云端验证补强
+- 已吸收 `0402噪声v2训练日志.txt` 中与 `gnn` 主线相关的有效结果。
+- 当前 `GNN_NOISE v2` 已确认：
+  - clean `CLS test_macro_f1=0.9149`
+  - clean `REG mae_all=0.4664`，`mae_changed=24.2457`
+  - clean joint `CMEI=93.49`
+  - `40dB CLS test_macro_f1=0.9078`
+  - `40dB REG mae_all=0.5317`，`mae_changed=25.3754`
+- `30dB / 20dB` 本轮没有拿到有效验证值，但已经确认原因不是模型前向失败，而是命令中的 `--dataset-tag ${TAG}` 空展开。
+- 为了让后续 `gnn` 云端验证不再依赖手工三连命令，已新增：
+  - `gnn/GNN_NOISE/run_noise_eval_suite.py`
+- 同时对 `GNN_NOISE v2` 与正式 joint 入口补充了 `dataset-tag` 防呆：
+  - 空值时报错更明确
+  - 占位符未展开时报错更明确
+
+## 2026-04-03 `GNN_EXPAND` 训练结果与汇总图
+- 已吸收 `拓展训练日志.txt`，并以 `GNN_EXPAND` 各阶段真实输出文件作为最终记录依据。
+- 当前四阶段结果：
+  - `stage1_square_10x10`: `macro_f1=0.8581`，`mae_changed=37.0220`，`CMEI=89.30`
+  - `stage2_rect_6x10`: `macro_f1=0.9018`，`mae_changed=16.9012`，`CMEI=94.38`
+  - `stage3_honeycomb_63`: `macro_f1=0.8671`，`mae_changed=31.3267`，`CMEI=91.05`
+  - `stage4_transfer_circlecut_69`: `macro_f1=0.8818`，`mae_changed=43.2324`，`CMEI=88.42`
+- 当前 `gnn` 口径下的判断：
+  - `stage2` 最稳定，说明当前方法对非正方形规则网格的推广性较强
+  - `stage3` 与 `stage1` 仍可用，但回归误差明显抬升
+  - `stage4` 的主要短板是回归与联合推理，不规则拓扑仍是当前主难点
+- 同时需要明确：
+  - 本轮 `stage4 transfer` 默认 warm start 路径写错，实际上没有成功承接 `stage1` 权重
+  - 因此当前 `stage4` 结果只能先视为不规则拓扑基线，而不是最终 transfer 结论
+  - 该默认路径现已修正，后续可按正确口径重跑
+- 已新增简洁科研风格汇总图：
+  - `gnn/GNN_EXPAND/expand_summary.svg`
+- 配套脚本与汇总数据：
+  - `gnn/GNN_EXPAND/plot_expand_summary.py`
+  - `gnn/GNN_EXPAND/expand_summary_metrics.json`
+## 2026-04-03 EXPAND 汇总图更新
+- `GNN_EXPAND` 的正式汇总图改为 `matplotlib` 生成的 `png/pdf`，不再以 `svg` 作为正式版本。
+- 当前正式文件：
+  - `gnn/GNN_EXPAND/expand_summary.png`
+  - `gnn/GNN_EXPAND/expand_summary.pdf`
+  - `gnn/GNN_EXPAND/expand_summary_metrics.json`
+- 图中采用单张双面板布局：
+  - 左图：`S_num / S_F1 / S_id / S_mse`
+  - 右图：`CMEI`
+## 2026-04-03 EXPAND Figure 目录
+- `GNN_EXPAND` 已新增 `Figure` 目录用于集中管理科研图输出。
+- 当前正式图像文件包括：
+  - `gnn/GNN_EXPAND/Figure/expand_summary.png`
+  - `gnn/GNN_EXPAND/Figure/expand_summary.pdf`
+  - `gnn/GNN_EXPAND/Figure/topology_square_10x10.png`
+  - `gnn/GNN_EXPAND/Figure/topology_rect_6x10.png`
+  - `gnn/GNN_EXPAND/Figure/topology_honeycomb_63.png`
+  - `gnn/GNN_EXPAND/Figure/topology_circlecut_69.png`
+
+## 2026-04-04 `GNN_NOISE v2` 完整曲线与 `GNN_EXPAND` transfer 更新
+- 已吸收根目录 `0404训练日志.txt`，但 `gnn` 线的正式记录继续以本地真实 `outputs/*.json` 为准。
+
+### `GNN_NOISE v2`
+- 这次已补齐 `clean / 40dB / 30dB / 20dB` 全部结果：
+  - clean：`CLS macro_f1=0.9149`，`REG mae_changed=24.2457`，`joint CMEI=93.49`
+  - `40dB`：`CLS macro_f1=0.9078`，`REG mae_changed=25.3754`，`joint CMEI=92.81`
+  - `30dB`：`CLS macro_f1=0.8903`，`REG mae_changed=34.0454`，`joint CMEI=90.44`
+  - `20dB`：`CLS macro_f1=0.7582`，`REG mae_changed=58.1169`，`joint CMEI=80.42`
+- 对比旧主线 `rand_boundary`：
+  - `v2` 已在 clean / `40dB` / `30dB` 上整体领先
+  - 但 `20dB` 端点仍低于 `rand_boundary`
+- 因此当前更准确的 `gnn` 工程判断是：
+  - 若目标是 clean 到中等噪声区间的整体平衡，优先看 `v2`
+  - 若目标是最难 `20dB` 条件下的单点最强结果，`rand_boundary` 仍需保留
+- 已新增正式科研风汇总图：
+  - `gnn/GNN_NOISE/Figure/noise_v2_summary.png`
+  - `gnn/GNN_NOISE/Figure/noise_v2_summary.pdf`
+  - `gnn/GNN_NOISE/noise_v2_summary_metrics.json`
+- 旧图 `gnn/GNN_NOISE/rand_boundary_robustness_curve.svg` 已删除。
+
+### `GNN_EXPAND`
+- `stage4_transfer_circlecut_69` 现已确认是真正加载 `stage1` 权重后的 transfer 结果：
+  - `CLS warm_start.loaded=36`
+  - `REG warm_start.loaded=36`
+  - `CLS macro_f1=0.8928`
+  - `REG mae_changed=36.1173`
+  - `joint CMEI=91.14`
+- 相比 2026-04-03 的未成功 transfer 基线：
+  - `CMEI: 88.42 -> 91.14`
+  - `mae_changed: 43.2324 -> 36.1173`
+- 当前判断修正为：
+  - `stage2_rect_6x10` 仍是最强扩展阶段
+  - 但 `stage4` 在真实 transfer 下已经明显回升，不再是单纯的失败基线
+- `EXPAND` 的正式图像已按最新数据重做：
+  - `gnn/GNN_EXPAND/Figure/expand_summary.png`
+  - `gnn/GNN_EXPAND/Figure/expand_summary.pdf`
+  - `gnn/GNN_EXPAND/Figure/topology_square_10x10.png`
+  - `gnn/GNN_EXPAND/Figure/topology_rect_6x10.png`
+  - `gnn/GNN_EXPAND/Figure/topology_honeycomb_63.png`
+  - `gnn/GNN_EXPAND/Figure/topology_circlecut_69.png`

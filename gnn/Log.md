@@ -1377,3 +1377,108 @@
   - 新版本优先复制原模型目录后再改，不直接改旧模型目录
   - `README.md / Log.md` 继续遵守只追加、不删旧记录
 - `DOC_RULES.md` 现仅作为历史兼容入口保留；后续正式规则维护统一看 `RULES.md`。
+
+## 2026-04-02 v85
+- 已为 `gnn` 主线补充 Git 分支与“当前最佳版本” tag 操作规范。
+- 当前固定口径为：
+  - `main` 只保留稳定、可回退、可作为正式路线的 `gnn` 状态
+  - 日常实验默认不直接在 `main` 上推进
+  - 新实验默认新建 `codex/` 前缀分支
+  - 推荐分支命名格式为 `codex/<模块>-<版本>-<目的>`
+- 当 `gnn` 某轮结果准备升级为当前最佳时，应同步完成：
+  - 稳定代码进入 `main`
+  - 更新根目录 `CURRENT_BEST.md`
+  - 追加更新根目录与 `gnn` 对应 `README.md / Log.md`
+  - 新增 `best-*` Git tag 作为恢复锚点
+- 同时明确：
+  - tag 只新增，不覆盖旧 tag
+  - 未形成正式结论的实验版本只停留在实验分支
+
+## 2026-04-03 v86
+- 已吸收 `0402噪声v2训练日志.txt` 中与 `gnn` 主线相关的有效结果。
+- `GNN_NOISE v2` 当前已确认：
+  - clean `CLS test_macro_f1=0.9149`
+  - clean `REG mae_all=0.4664`，`mae_changed=24.2457`，`count_macro_f1=0.8349`
+  - clean joint `CMEI=93.49`
+  - `40dB CLS test_macro_f1=0.9078`
+  - `40dB REG mae_all=0.5317`，`mae_changed=25.3754`，`count_macro_f1=0.8342`
+- `30dB / 20dB` 本轮未得到有效值，已定位为云端命令里的 `--dataset-tag ${TAG}` 未展开，属于验证入口问题。
+- 已新增：
+  - `gnn/GNN_NOISE/run_noise_eval_suite.py`
+- 作用：
+  - 统一串行执行 clean / `40dB` / `30dB` / `20dB` 的 `CLS / REG / joint` 评估
+  - 自动把单模型评估结果按噪声等级复制为独立 `json`
+  - 支持 `--dry-run`
+- 并已在 `GNN_NOISE v2` 与正式 `GNN_CMEI_INFERENCE` 入口补充 `dataset-tag` 空值 / 占位符未展开的明确报错。
+
+## 2026-04-03 v87
+- 已吸收 `拓展训练日志.txt`，并以 `GNN_EXPAND` 四阶段实际输出文件作为最终记录依据。
+- 当前结果：
+  - `stage1_square_10x10`: `macro_f1=0.8581`，`mae_changed=37.0220`，`CMEI=89.30`
+  - `stage2_rect_6x10`: `macro_f1=0.9018`，`mae_changed=16.9012`，`CMEI=94.38`
+  - `stage3_honeycomb_63`: `macro_f1=0.8671`，`mae_changed=31.3267`，`CMEI=91.05`
+  - `stage4_transfer_circlecut_69`: `macro_f1=0.8818`，`mae_changed=43.2324`，`CMEI=88.42`
+- 当前判断：
+  - `stage2_rect_6x10` 为本轮最佳扩展阶段
+  - `stage4_circlecut_69` 的回归与联合推理最弱，不规则拓扑仍是主难点
+- 已修正 `stage4 transfer` 的默认 warm start 路径：
+  - 从错误的 `.../outputs/training_data64Nodes_2/model_last.pt`
+  - 改为正确的 `.../outputs/square_10x10/model_last.pt`
+- 因此当前已记录的 `stage4` 结果暂不作为最终 transfer 结论，只作为当前不规则拓扑基线。
+- 已新增扩展结果汇总图与配套脚本：
+  - `gnn/GNN_EXPAND/plot_expand_summary.py`
+  - `gnn/GNN_EXPAND/expand_summary_metrics.json`
+  - `gnn/GNN_EXPAND/expand_summary.svg`
+- v88
+  - `GNN_EXPAND` 汇总图切换为 `matplotlib` 双面板版本。
+  - 正式输出更新为 `expand_summary.png` 与 `expand_summary.pdf`，旧 `expand_summary.svg` 停用并删除。
+- v89
+  - `GNN_EXPAND` 新增 `Figure` 目录，统一存放 `expand_summary` 与四张拓扑结构图。
+  - 新增脚本：
+    - `gnn/GNN_EXPAND/plot_expand_topologies.py`
+
+## 2026-04-04 v90
+- 已吸收 `0404训练日志.txt`，但 `gnn` 线正式记录继续以本地真实输出文件为准。
+
+### `GNN_NOISE v2` 完整补评估
+- 本轮终于补齐 `clean / 40dB / 30dB / 20dB` 四档完整 `CLS / REG / joint` 结果：
+  - clean：`macro_f1=0.9149`，`mae_changed=24.2457`，`CMEI=93.49`
+  - `40dB`：`macro_f1=0.9078`，`mae_changed=25.3754`，`CMEI=92.81`
+  - `30dB`：`macro_f1=0.8903`，`mae_changed=34.0454`，`CMEI=90.44`
+  - `20dB`：`macro_f1=0.7582`，`mae_changed=58.1169`，`CMEI=80.42`
+- 与 `rand_boundary` 对比后的判断修正为：
+  - `v2` 已经成为 clean 到中噪声区间更强的曲线
+  - 但 `20dB` 端点仍由 `rand_boundary` 保持领先
+  - 因此 noisy 最佳口径应改成“双锚点”而不是单条线绝对统治
+- 已新增：
+  - `gnn/GNN_NOISE/plot_noise_v2_summary.py`
+  - `gnn/GNN_NOISE/noise_v2_summary_metrics.json`
+  - `gnn/GNN_NOISE/Figure/noise_v2_summary.png`
+  - `gnn/GNN_NOISE/Figure/noise_v2_summary.pdf`
+- 已删除旧图：
+  - `gnn/GNN_NOISE/rand_boundary_robustness_curve.svg`
+
+### `GNN_EXPAND` 真正 transfer 结果补齐
+- `stage4_transfer_circlecut_69` 当前记录已更新为真正成功加载 `stage1` 权重后的结果：
+  - `CLS warm_start.loaded=36`
+  - `REG warm_start.loaded=36`
+  - `CLS macro_f1=0.8928`
+  - `REG mae_changed=36.1173`
+  - `joint CMEI=91.14`
+- 相比上一轮未成功 warm start 的基线：
+  - `macro_f1: 0.8818 -> 0.8928`
+  - `mae_changed: 43.2324 -> 36.1173`
+  - `CMEI: 88.42 -> 91.14`
+- 当前阶段判断更新为：
+  - `stage2_rect_6x10` 仍是最强阶段
+  - `stage4_circlecut_69` 已从“路径错误导致的弱基线”修正为“真实 transfer 后可用但仍待继续优化”的阶段
+- `EXPAND` 图像已按最新数据重画：
+  - `gnn/GNN_EXPAND/Figure/expand_summary.png`
+  - `gnn/GNN_EXPAND/Figure/expand_summary.pdf`
+  - `gnn/GNN_EXPAND/Figure/topology_square_10x10.png`
+  - `gnn/GNN_EXPAND/Figure/topology_rect_6x10.png`
+  - `gnn/GNN_EXPAND/Figure/topology_honeycomb_63.png`
+  - `gnn/GNN_EXPAND/Figure/topology_circlecut_69.png`
+
+### 清理
+- `0404训练日志.txt` 的内容已吸收入正式文档，现已删除。

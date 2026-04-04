@@ -25,3 +25,16 @@
 - `honeycomb_63` 的真实数据规模为：
   - `28` 个外部节点
   - `32` 组激励
+
+## 2026-04-03 训练结果
+- 当前结果：
+  - `CLS macro_f1=0.8671`
+  - `REG mae_all=0.4831`
+  - `REG mae_changed=31.3267`
+  - `joint CMEI=91.05`
+- 当前解释：
+  - 蜂窝状复杂连接结构下，分类和联合推理仍然可用
+  - 但回归误差相较 `stage2_rect_6x10` 明显增大，说明连接结构复杂化会提高重建难度
+- 口径补充：
+  - `CLS warm_start.loaded=0`
+  - `REG warm_start.loaded=36`
