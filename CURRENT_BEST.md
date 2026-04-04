@@ -122,3 +122,12 @@
 - 当前正式图像锚点：
   - `gnn/GNN_NOISE/Figure/noise_v2_summary.png`
   - `gnn/GNN_EXPAND/Figure/expand_summary.png`
+
+## 10. Git 恢复锚点（2026-04-04）
+- 当前“初级阶段收敛”正式快照：
+  - commit: `0763917`
+  - message: `Finalize initial GNN convergence snapshot`
+  - tag: `best-project-2026-04-04`
+- 这次快照的定位是：
+  - clean / noisy / expand 三条主线都已形成可复述、可回看、可继续推进的阶段性稳定版本
+  - 适合作为“初级阶段结束”后的统一恢复点

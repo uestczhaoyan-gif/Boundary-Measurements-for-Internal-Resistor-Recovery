@@ -1482,3 +1482,14 @@
 
 ### 清理
 - `0404训练日志.txt` 的内容已吸收入正式文档，现已删除。
+
+## 2026-04-04 v91
+- 已在 `main` 上创建当前 `gnn` 主线的阶段性稳定快照：
+  - commit: `0763917`
+  - message: `Finalize initial GNN convergence snapshot`
+- 同时新增 Git 恢复锚点：
+  - `best-project-2026-04-04`
+- 这次快照的意义是：
+  - clean、noisy、joint、expand 四块都已经形成清晰的当前最佳口径
+  - 文档、图像、脚本和恢复锚点已同步齐全
+  - 后续工作可以从“继续补基础闭环”切换到“带目标地攻克剩余瓶颈”

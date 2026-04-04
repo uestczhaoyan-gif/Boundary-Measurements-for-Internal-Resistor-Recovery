@@ -1763,3 +1763,16 @@
 
 ### 文件清理
 - `0404训练日志.txt` 的内容已吸收到正式文档，现已删除。
+
+## 2026-04-04 v92
+- 已在 `main` 上创建当前“初级阶段收敛”快照提交：
+  - commit: `0763917`
+  - message: `Finalize initial GNN convergence snapshot`
+- 同时新增恢复锚点 tag：
+  - `best-project-2026-04-04`
+- 这次 Git 快照对应的工程含义是：
+  - clean 主线已经稳定收敛到 `modelo3 + o4a2 + inference_gnn_cmei.py`
+  - noisy 路线已经明确为“双锚点”格局：`v2` 主打 clean~中噪声，`rand_boundary` 保留最强 `20dB`
+  - expand 路线已经完成四阶段首轮闭环，并且 `stage4` 真正 transfer 已验证有效
+- 因此当前可以把这次版本视为：
+  - 64Nodes 项目“初级阶段结束 / 下一阶段起点”的正式恢复点
