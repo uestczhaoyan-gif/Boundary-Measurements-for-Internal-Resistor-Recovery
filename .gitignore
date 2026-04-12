@@ -24,6 +24,14 @@ outputs/
 data/*.csv
 gnn/GNN_EXPAND/data/*.csv
 mlp/fixed_change_recon/data_fixed/*.csv
+square_scale_study/data/**/square_*.csv
+square_scale_study/data/**/square_*_meta.json
+square_scale_study/.vendor_plot/
+square_scale_study/**/__pycache__/
+square_scale_study/**/.ipynb_checkpoints/
+square_scale_study/outputs/**
+!square_scale_study/outputs/.gitkeep
+square_scale_study/outputs_model*/
 inverse_identifiability/outputs*/
 inverse_identifiability/*_experiment/
 robustness_archive/
