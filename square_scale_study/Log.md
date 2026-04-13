@@ -515,3 +515,109 @@
 - 每个模型的架构与默认超参数
 - 各模型 loss 的精确定义
 - `N=3, K=2~4` 的推荐训练与推理命令
+## 2026-04-13：N=3 上 modelo1 系列结果整理
+
+本轮在固定 `N=3` 下，完成了四条 `modelo1` 线路的完整对照：
+
+- `modelo1_gnn`
+- `modelo1_gnn_mse`
+- `modelo1_mlp1`
+- `modelo1_mlp2`
+
+统一测试范围为：
+
+- `K = 2, 3, 4`
+- 无噪声
+- 固定 `8:1:1` 的 `train / val / test`
+
+### 一、测试集结果总表
+
+`modelo1_gnn`
+
+- `K=2`：`test_id_exact_rate = 0.932`，`test_value_accuracy = 0.9876`
+- `K=3`：`test_id_exact_rate = 0.893`，`test_value_accuracy = 0.9906`
+- `K=4`：`test_id_exact_rate = 0.842`，`test_value_accuracy = 0.9901`
+
+`modelo1_gnn_mse`
+
+- `K=2`：`test_id_exact_rate = 0.977`，`test_value_accuracy = 0.9920`
+- `K=3`：`test_id_exact_rate = 0.941`，`test_value_accuracy = 0.9915`
+- `K=4`：`test_id_exact_rate = 0.905`，`test_value_accuracy = 0.9860`
+
+`modelo1_mlp1`
+
+- `K=2`：`test_id_exact_rate = 0.941`，`test_value_accuracy = 0.9848`
+- `K=3`：`test_id_exact_rate = 0.873`，`test_value_accuracy = 0.9866`
+- `K=4`：`test_id_exact_rate = 0.793`，`test_value_accuracy = 0.9848`
+
+`modelo1_mlp2`
+
+- `K=2`：`test_id_exact_rate = 0.979`，`test_value_accuracy = 0.9880`
+- `K=3`：`test_id_exact_rate = 0.936`，`test_value_accuracy = 0.9884`
+- `K=4`：`test_id_exact_rate = 0.889`，`test_value_accuracy = 0.9871`
+
+### 二、与上一轮 `modelv3` 的对比
+
+`modelv3` 的对应测试集结果为：
+
+- `K=2`：`ID = 0.925`，`Value = 0.9823`
+- `K=3`：`ID = 0.810`，`Value = 0.9779`
+- `K=4`：`ID = 0.668`，`Value = 0.9701`
+
+对比可见：
+
+- 四条 `modelo1` 新线都整体优于 `modelv3`
+- 提升最明显的是 `K=3,4` 时的 support 识别能力
+- 尤其是新增的 `modelo1_gnn_mse`，把 GNN 线在 `K=3,4` 上的结果明显抬高了
+- 说明这轮“先固定 `N=3`，再做结构与 loss 的正交对照”方向是有效的
+
+### 三、当前最重要的实验结论
+
+1. 当前最重要的结论不是“MLP 一定比 GNN 好”，而是“纯 `MSE` 版本整体优于 support-aware 版本”
+
+- 在 MLP 组中：
+  - `modelo1_mlp2 > modelo1_mlp1`
+- 在 GNN 组中：
+  - `modelo1_gnn_mse > modelo1_gnn`
+- 这说明当前 `N=3` 设置下，`score head + ranking loss` 更像是在干扰最终的 top-`K` 恢复，而不是帮助它
+
+2. 在加入 `modelo1_gnn_mse` 之后，GNN 线的判断发生了更新
+
+- 之前如果只看 `modelo1_gnn`，会得出“GNN 不如 MLP”的结论
+- 但加入同容量纯 `MSE` 的 `modelo1_gnn_mse` 后可以看到：
+  - `K=2`：`modelo1_mlp2 = 0.979`，`modelo1_gnn_mse = 0.977`
+  - `K=3`：`modelo1_gnn_mse = 0.941`，`modelo1_mlp2 = 0.936`
+  - `K=4`：`modelo1_gnn_mse = 0.905`，`modelo1_mlp2 = 0.889`
+- 这说明图结构先验并不是无效，而是**在不叠加额外 score/ranking 约束时，GNN 反而在更难的 `K=3,4` 上表现更强**
+
+3. 当前瓶颈主要仍然体现在 `ID`，而不是数值回归
+
+- 五条模型在 `K=2,3,4` 上的 `value_accuracy` 都已经稳定在 `0.982+`
+- 真正拉开差距的是 `id_exact_rate`
+- 说明当前问题依然不是“数值回归学不会”，而是“如何让 top-`K` support 排序更稳”
+
+4. 当前严格阈值下，`N=3` 仍未正式通过
+
+- 项目当前通过标准是：
+  - `id_exact_rate >= 0.98`
+  - `value_accuracy >= 0.90`
+- 本轮最佳结果是 `modelo1_mlp2, K=2` 的 `id_exact_rate = 0.979`
+- 它已经非常接近阈值，但在当前严格定义下仍然记为 `pass = False`
+
+### 四、对后续工作的直接指导
+
+当前阶段的最优先级结论是：
+
+- `N=3` 下不应继续优先堆复杂的 score/ranking 设计
+- 当前最值得继续推进的是两条纯 `MSE` 主线：
+  - `modelo1_gnn_mse`
+  - `modelo1_mlp2`
+- 如果目标是继续冲击 `id_exact_rate >= 0.98`，那么当前最合理的做法不是再加复杂监督，而是围绕纯回归主线继续优化容量、正则和训练稳定性
+- 下一步需要认真讨论的是：
+  - `id_exact_rate` 的阈值是否必须固定为 `0.98`
+  - 对每一个 `N`，是否都应单独寻找最合适的模型结构
+  - 若目标是“估计该规模的最大可识别 `K`”，那么是否需要针对每个 `N` 先做充分的 per-`N` 模型优化，再宣布该 `N` 的 `K_max`
+
+### 五、当前一句话总结
+
+在固定 `N=3` 的完整五线对照中，新增的 `modelo1_gnn_mse` 证明了“GNN 并不一定弱，真正的问题更可能是 support-aware loss 干扰了学习”；当前最强路线已经从“更复杂的监督”转向“更干净的纯 `MSE` 回归”，其中 `K=2` 最优为 `modelo1_mlp2`，而 `K=3,4` 最优为 `modelo1_gnn_mse`。

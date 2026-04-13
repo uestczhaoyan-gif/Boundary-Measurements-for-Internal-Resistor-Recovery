@@ -32,6 +32,7 @@ from models.modelv1_1 import ModelV11Regressor
 from models.modelv2 import ModelV2Regressor
 from models.modelv3 import ModelV3Regressor
 from models.modelo1_gnn import Modelo1GNNRegressor
+from models.modelo1_gnn_mse import Modelo1GNNMSERegressor
 from models.modelo1_mlp1 import Modelo1MLP1Regressor
 from models.modelo1_mlp2 import Modelo1MLP2Regressor
 from project_common import apply_standardization, compute_fixedk_metrics, load_json, load_split_from_meta
@@ -43,7 +44,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", required=True)
     parser.add_argument(
         "--model-type",
-        choices=["modelv1", "modelv1_1", "modelv2", "modelv3", "modelo1_gnn", "modelo1_mlp1", "modelo1_mlp2"],
+        choices=["modelv1", "modelv1_1", "modelv2", "modelv3", "modelo1_gnn", "modelo1_gnn_mse", "modelo1_mlp1", "modelo1_mlp2"],
         required=True,
     )
     parser.add_argument("--split", default="test", choices=["train", "val", "test"])
@@ -84,6 +85,15 @@ def load_model(model_type: str, topology, input_dim: int, device: torch.device, 
             }
         )
         return Modelo1GNNRegressor(**kwargs).to(device)
+    if model_type == "modelo1_gnn_mse":
+        kwargs.update(
+            {
+                "edge_hidden": int(cfg.get("edge_hidden", 512)),
+                "heads": int(cfg.get("gat_heads", 8)),
+                "num_layers": int(cfg.get("num_layers", 4)),
+            }
+        )
+        return Modelo1GNNMSERegressor(**kwargs).to(device)
     if model_type == "modelo1_mlp1":
         return Modelo1MLP1Regressor(
             input_dim=input_dim,

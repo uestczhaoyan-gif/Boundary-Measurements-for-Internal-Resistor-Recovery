@@ -499,3 +499,105 @@ foreach ($job in $jobs) {
 - 是图结构有用
 - 还是 support-aware loss 有用
 - 还是单纯增大容量就足够
+
+## 11. 2026-04-13 补充：`modelo1_gnn_mse`
+
+为了把“模型类型”和“loss 设计”的影响彻底拆开，本轮补充一条新的 GNN 对照线：
+
+- `modelo1_gnn_mse`
+
+它的定位是：
+
+- 与 `modelo1_gnn` 使用同等容量、同等深度、同等跨激励融合方式
+- 只移除 `score_head`
+- 只保留 `value_head`
+- 训练时只使用纯 `MSE`
+
+这样就形成了两组完全对称的对照：
+
+- GNN 组：
+  - `modelo1_gnn`：GNN + score/value 双头 + support-aware loss
+  - `modelo1_gnn_mse`：GNN + 纯 value 头 + 纯 `MSE`
+- MLP 组：
+  - `modelo1_mlp1`：MLP + score/value 双头 + support-aware loss
+  - `modelo1_mlp2`：MLP + 纯 value 头 + 纯 `MSE`
+
+### 11.1 这个模型主要回答什么问题
+
+`modelo1_gnn_mse` 的作用不是为了直接替代主线，而是为了回答：
+
+- 对 GNN 而言，性能差异究竟主要来自“图结构主干”，还是主要来自“loss 设计”？
+- 如果 `modelo1_gnn_mse > modelo1_gnn`，说明 support-aware loss 在当前 `N=3` 上可能确实干扰了训练
+- 如果 `modelo1_gnn_mse ≈ modelo1_gnn`，说明 loss 不是决定性因素，瓶颈更像是主干结构本身
+- 如果 `modelo1_gnn_mse < modelo1_gnn`，说明对 GNN 来说，score/ranking 仍可能有正面价值
+
+### 11.2 架构记录
+
+`modelo1_gnn_mse` 与 `modelo1_gnn` 的主干完全一致：
+
+- 节点编码器：两层 MLP
+- 图消息传递：`4` 层残差 `GATv2Conv`
+- 多层特征拼接：jump-style aggregation
+- 跨激励融合：attention pooling + mean pool + max pool
+- 边级主干：与 `modelo1_gnn` 相同的高容量 edge trunk
+
+唯一差别是输出头：
+
+- `modelo1_gnn`：`score_head + value_head`
+- `modelo1_gnn_mse`：仅 `value_head`
+
+默认超参数与 `modelo1_gnn` 保持一致：
+
+- `hidden_dim = 256`
+- `edge_hidden = 512`
+- `heads = 8`
+- `num_layers = 4`
+- `dropout = 0.02`
+
+### 11.3 损失定义
+
+`modelo1_gnn_mse` 只使用纯回归 `MSE`：
+
+`L_total = (1 / M) * sum_{i=1}^{M} (v_i - y_i)^2`
+
+其中：
+
+- `M` 是总边数
+- `v_i` 是第 `i` 条边的预测变化量
+- `y_i` 是第 `i` 条边的真实变化量
+
+推理时按 `|v_i|` 取 top-`K` 作为变化边预测。
+
+### 11.4 运行命令
+
+训练：
+
+```powershell
+python square_scale_study\models\modelo1_gnn_mse\train.py `
+  --meta-path square_scale_study\data\N3x3\square_N3x3_K2_meta.json `
+  --out-dir square_scale_study\outputs_modelo1_gnn_mse\N3x3_K2
+```
+
+推理：
+
+```powershell
+python square_scale_study\models\modelo1_gnn_mse\inference.py `
+  --meta-path square_scale_study\data\N3x3\square_N3x3_K2_meta.json `
+  --out-dir square_scale_study\outputs_modelo1_gnn_mse\N3x3_K2 `
+  --split test
+```
+
+一次跑 `K = 2, 3, 4`：
+
+```powershell
+$jobs = @(
+  @{ Meta = "square_scale_study\data\N3x3\square_N3x3_K2_meta.json"; Out = "square_scale_study\outputs_modelo1_gnn_mse\N3x3_K2" },
+  @{ Meta = "square_scale_study\data\N3x3\square_N3x3_K3_meta.json"; Out = "square_scale_study\outputs_modelo1_gnn_mse\N3x3_K3" },
+  @{ Meta = "square_scale_study\data\N3x3\square_N3x3_K4_meta.json"; Out = "square_scale_study\outputs_modelo1_gnn_mse\N3x3_K4" }
+)
+
+foreach ($job in $jobs) {
+  python square_scale_study\models\modelo1_gnn_mse\train.py --meta-path $job.Meta --out-dir $job.Out
+  python square_scale_study\models\modelo1_gnn_mse\inference.py --meta-path $job.Meta --out-dir $job.Out --split test
+}
+```
