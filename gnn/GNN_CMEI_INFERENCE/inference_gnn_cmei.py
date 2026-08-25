@@ -317,6 +317,16 @@ def main():
 
     cls_metrics = json.loads(cls_metrics_path.read_text(encoding="utf-8"))
     reg_metrics = json.loads(reg_metrics_path.read_text(encoding="utf-8"))
+    recorded_split_seeds = {
+        int(metrics["split_seed"])
+        for metrics in (cls_metrics, reg_metrics)
+        if "split_seed" in metrics
+    }
+    if recorded_split_seeds and (len(recorded_split_seeds) != 1 or args.split_seed not in recorded_split_seeds):
+        raise RuntimeError(
+            "CMEI split seed does not match the trained CLS/REG artifacts: "
+            f"requested={args.split_seed}, recorded={sorted(recorded_split_seeds)}"
+        )
     cls_thresholds = cls_metrics.get("best_thresholds", [0.5, 0.5, 0.5])
 
     PhysicsInformedGNNClassifier = load_module_attr(

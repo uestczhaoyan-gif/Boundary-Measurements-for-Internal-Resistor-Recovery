@@ -22,6 +22,7 @@ outputs/
 
 # Generated datasets that can be rebuilt from scripts
 data/*.csv
+data/_smoke/
 gnn/GNN_EXPAND/data/*.csv
 mlp/fixed_change_recon/data_fixed/*.csv
 square_scale_study/data/**/square_*.csv

@@ -5,7 +5,10 @@ import random
 from datetime import datetime
 from pathlib import Path
 
-import numpy as np
+try:
+    import numpy as np
+except ModuleNotFoundError:
+    np = None
 
 
 GRID_SIZE = 8
@@ -137,6 +140,11 @@ def main():
     parser.add_argument("--max-ratio", type=float, default=0.30, help="Maximum absolute change ratio")
     parser.add_argument("--float-decimals", type=int, default=6, help="Decimals for output voltages/values")
     args = parser.parse_args()
+    if np is None:
+        raise SystemExit(
+            "NumPy is required to generate data. Install dependencies first, "
+            "for example: python -m pip install -r requirements.txt"
+        )
 
     rng = random.Random(args.seed)
     edges = build_edges()

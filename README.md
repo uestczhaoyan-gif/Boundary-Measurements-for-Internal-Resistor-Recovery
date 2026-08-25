@@ -2,7 +2,7 @@
 
 研究一个固定拓扑的逆问题：只观测电阻网络边界节点的电压响应，能否判断内部哪些电阻发生了变化、变化了多少，以及这种判断在噪声和拓扑变化下还能保持多久。
 
-项目对应的本科毕业设计题目为“面向拓扑光电融合网络的边缘端口测量与内部参数提取”。仓库公开的是代码、脱敏数据元数据、实验图表和研究记录；论文终稿、答辩材料和含个人信息的文件位于本地 `private_materials/`，并被 Git 忽略。
+项目对应的本科毕业设计题目为“面向拓扑光电融合网络的边缘端口测量与内部参数提取”。当前仓库中的数据和结果全部来自**基于基尔霍夫方程的合成仿真**，尚不包含真实器件或真实硬件测量验证。仓库公开的是代码、脱敏数据元数据、实验图表和研究记录；论文终稿、答辩材料和含个人信息的文件位于本地 `private_materials/`，并被 Git 忽略。
 
 ## 研究问题
 
@@ -77,8 +77,14 @@ Get-Content data\training_data64Nodes_2_meta.json
 
 ```powershell
 python scripts\generate_training_data64.py --help
-python scripts\generate_training_data64.py --total-combos 100 --output data\training_data64_smoke.csv
+python scripts\generate_training_data64.py `
+  --total-combos 100 `
+  --current-a 0.01 `
+  --output data\_smoke\training_data64_smoke.csv `
+  --meta-output data\_smoke\training_data64_smoke_meta.json
 ```
+
+这条命令显式指定了仿真电流、CSV 路径和 metadata 路径，不会覆盖正式数据的 metadata。要生成当前默认的 10 mA 正式数据，使用 `--current-a 0.01`、`--output data\training_data64Nodes_2.csv` 和 `--meta-output data\training_data64Nodes_2_meta.json`。
 
 具体参数以脚本的 `--help` 为准。正式训练前先用小数据集验证路径、依赖和输出目录。
 
@@ -90,7 +96,7 @@ python gnn\GNN_REG\o4a2\train.py --help
 python gnn\GNN_CMEI_INFERENCE\inference_gnn_cmei.py --help
 ```
 
-训练命令应显式指定 `--data-path`、`--dataset-tag` 和随机种子。输出会写入对应模型目录的 `cache/<dataset_tag>/` 与 `outputs/<dataset_tag>/`，这些目录默认不提交。
+训练命令应显式指定 `--data-path`、`--dataset-tag` 和随机种子。输出会写入对应模型目录的 `cache/<dataset_tag>/` 与 `outputs/<dataset_tag>/`，这些目录默认不提交。想验证完整链路，可运行 [`scripts/reproduce_smoke.ps1`](scripts/reproduce_smoke.ps1)。
 
 ## 复现约定
 

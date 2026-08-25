@@ -449,6 +449,8 @@ def run(args):
     (out_dir / "confusion_matrix_count_test.txt").write_text(np.array2string(cm), encoding="utf-8")
     metrics = {
         "dataset_tag": args.dataset_tag,
+        "seed": args.seed,
+        "split_seed": args.seed,
         "data_path": str(Path(args.data_path)),
         "cache_path": str(cache_path),
         "out_dir": str(out_dir),

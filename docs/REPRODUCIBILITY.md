@@ -13,6 +13,8 @@ python gnn\GNN_CLS\modelo3\train.py --help
 
 如果 import 失败，先按当前机器的 PyTorch/PyG 官方安装说明配置环境，再运行项目脚本。不要把 vendor 目录提交到 GitHub。
 
+仓库提供 [`scripts/reproduce_smoke.ps1`](../scripts/reproduce_smoke.ps1) 作为端到端冒烟入口。它会生成独立的 10 mA 小数据集、各训练一轮 CLS/REG，然后运行 CMEI；需要已安装 NumPy、SciPy、PyTorch 和 PyG。
+
 ## 实验记录最小字段
 
 每次可比较实验至少记录：
