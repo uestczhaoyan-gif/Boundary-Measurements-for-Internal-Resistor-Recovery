@@ -108,4 +108,4 @@ python gnn\GNN_CMEI_INFERENCE\inference_gnn_cmei.py --help
 
 ## 许可证与材料边界
 
-原创代码按 [`LICENSE`](LICENSE) 发布。第三方论文、学校模板、图标、字体和论文附件不因本仓库的许可证而自动获得再分发授权。含个人信息的材料保存在 `private_materials/`，不要使用 `git add -f` 强行加入公开仓库。
+原创代码按 [`LICENSE`](LICENSE) 发布。第三方论文、学校模板、图标、字体和论文附件不因本仓库的许可证而自动获得再分发授权。含个人信息的材料保存在 `private_materials/`，不加入公开仓库。
