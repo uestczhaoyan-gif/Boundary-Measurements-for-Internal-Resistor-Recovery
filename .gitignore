@@ -32,9 +32,19 @@ square_scale_study/**/.ipynb_checkpoints/
 square_scale_study/outputs/**
 !square_scale_study/outputs/.gitkeep
 square_scale_study/outputs_model*/
+square_scale_study/outputs*/
+square_scale_study/models/
+square_scale_study/data_subproj*/
+square_scale_study/data_theory_validation*/
+square_scale_study/theory_validation*/
+square_scale_study/_smoke_*/
 inverse_identifiability/outputs*/
 inverse_identifiability/*_experiment/
 robustness_archive/
+
+# Generated figures and local model artifacts in exploratory studies
+square_scale_study/PPT_Figure/
+square_scale_study/Figure/*/
 
 # Temporary notes / ad-hoc logs
 *训练日志*.txt
@@ -46,3 +56,17 @@ Thumbs.db
 .DS_Store
 .vscode/
 .idea/
+
+# Personal / submission-only materials. Keep these outside the public GitHub tree.
+private_materials/
+
+# Local scratch files created while editing or rendering documents
+_docx_edit_tmp/
+render_qa/
+temp_figures/
+_headings.txt
+_temp_output.txt
+e_drive_utf8.txt
+e_drive_version.txt
+fix_log.txt
+format_analysis.txt

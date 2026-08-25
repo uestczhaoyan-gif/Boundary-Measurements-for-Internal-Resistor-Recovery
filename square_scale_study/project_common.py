@@ -6,7 +6,7 @@ import random
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Sequence
 
 from bootstrap import prepend_vendor_dir
 
@@ -91,6 +91,29 @@ def build_square_topology(grid_size: int) -> SquareTopologySpec:
     )
 
 
+def node_boundary_depths(grid_size: int) -> np.ndarray:
+    depths: list[int] = []
+    for row in range(grid_size):
+        for col in range(grid_size):
+            depths.append(min(row, col, grid_size - 1 - row, grid_size - 1 - col))
+    return np.asarray(depths, dtype=np.int64)
+
+
+def edge_depths(topology: SquareTopologySpec) -> np.ndarray:
+    node_depth = node_boundary_depths(topology.grid_size)
+    return np.asarray(
+        [min(int(node_depth[u]), int(node_depth[v])) for u, v in topology.resistor_edges],
+        dtype=np.int64,
+    )
+
+
+def edge_ids_by_depth(topology: SquareTopologySpec) -> dict[int, list[int]]:
+    grouped: dict[int, list[int]] = {}
+    for edge_idx, depth in enumerate(edge_depths(topology).tolist()):
+        grouped.setdefault(int(depth), []).append(int(edge_idx))
+    return grouped
+
+
 def normalize_grid_coords(grid_size: int) -> tuple[tuple[float, float], ...]:
     coords: list[tuple[float, float]] = []
     denom = max(grid_size - 1, 1)
@@ -127,9 +150,22 @@ def select_evenly_spaced_indices(total: int, count: int) -> list[int]:
     return ordered
 
 
+def select_active_boundary_nodes(boundary_nodes: Sequence[int], active_count: int) -> list[int]:
+    nodes = [int(node) for node in boundary_nodes]
+    if active_count >= len(nodes):
+        return nodes
+    keep = select_evenly_spaced_indices(len(nodes), active_count)
+    return [nodes[idx] for idx in keep]
+
+
+def build_boundary_excitations_for_nodes(boundary_nodes: Sequence[int]) -> list[tuple[int, int]]:
+    nodes = [int(node) for node in boundary_nodes]
+    return [(nodes[i], nodes[(i + 1) % len(nodes)]) for i in range(len(nodes))]
+
+
 def build_boundary_excitations(topology: SquareTopologySpec, excitation_count: int | None = None) -> list[tuple[int, int]]:
     boundary_nodes = list(topology.boundary_nodes_clockwise)
-    full = [(boundary_nodes[i], boundary_nodes[(i + 1) % len(boundary_nodes)]) for i in range(len(boundary_nodes))]
+    full = build_boundary_excitations_for_nodes(boundary_nodes)
     if excitation_count is None or excitation_count >= len(full):
         return full
     keep = select_evenly_spaced_indices(len(full), excitation_count)
@@ -324,15 +360,27 @@ def topology_from_meta(meta: dict) -> SquareTopologySpec:
     )
 
 
+def measurement_boundary_nodes_from_meta(meta: dict, topology: SquareTopologySpec) -> np.ndarray:
+    raw = meta.get("measurement_boundary_nodes") or meta.get("active_boundary_nodes") or list(topology.boundary_nodes_clockwise)
+    return np.asarray([int(node) for node in raw], dtype=np.int64)
+
+
+def active_boundary_nodes_from_meta(meta: dict, topology: SquareTopologySpec) -> np.ndarray:
+    raw = meta.get("active_boundary_nodes") or meta.get("measurement_boundary_nodes") or list(topology.boundary_nodes_clockwise)
+    return np.asarray([int(node) for node in raw], dtype=np.int64)
+
+
 def load_split_from_meta(meta_path: Path, split: str) -> tuple[np.ndarray, np.ndarray, np.ndarray, SquareTopologySpec, dict]:
     meta = load_json(meta_path)
     topology = topology_from_meta(meta)
     csv_path = meta_path.parent / meta["files"][split]
     baseline = np.asarray(meta["baseline_boundary_voltages"], dtype=np.float32)
-    boundary_nodes = np.asarray(topology.boundary_nodes_clockwise, dtype=np.int64)
+    physical_boundary_nodes = np.asarray(topology.boundary_nodes_clockwise, dtype=np.int64)
+    measurement_boundary_nodes = measurement_boundary_nodes_from_meta(meta, topology)
+    active_boundary_nodes = active_boundary_nodes_from_meta(meta, topology)
     excitations = [(int(src), int(gnd)) for src, gnd in meta["excitations"]]
     num_excitations = len(excitations)
-    num_boundary_nodes = len(boundary_nodes)
+    num_boundary_nodes = len(measurement_boundary_nodes)
     k = int(meta["k"])
     num_resistors = topology.num_resistors
 
@@ -342,7 +390,7 @@ def load_split_from_meta(meta_path: Path, split: str) -> tuple[np.ndarray, np.nd
     sample_rows: list[np.ndarray] = []
     current_sample_id: int | None = None
     current_target: np.ndarray | None = None
-    voltage_columns = [f"v_node{node}" for node in boundary_nodes]
+    voltage_columns = [f"v_node{node}" for node in measurement_boundary_nodes]
 
     with csv_path.open("r", newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
@@ -381,7 +429,15 @@ def load_split_from_meta(meta_path: Path, split: str) -> tuple[np.ndarray, np.nd
 
     x_delta = np.stack(x_list, axis=0).astype(np.float32)
     y_delta = np.stack(y_list, axis=0).astype(np.float32)
-    graphs = to_graph_input(x_delta, boundary_nodes, excitations, topology.num_nodes)
+    use_active_mask = "active_boundary_nodes" in meta or "measurement_boundary_nodes" in meta
+    graphs = to_graph_input(
+        x_delta,
+        physical_boundary_nodes,
+        excitations,
+        topology.num_nodes,
+        active_boundary_nodes=active_boundary_nodes if use_active_mask else None,
+        measurement_boundary_nodes=measurement_boundary_nodes,
+    )
     return graphs, y_delta, np.asarray(sample_ids, dtype=np.int64), topology, meta
 
 
@@ -390,11 +446,18 @@ def to_graph_input(
     boundary_nodes: np.ndarray,
     excitations: list[tuple[int, int]],
     num_nodes: int,
+    active_boundary_nodes: np.ndarray | None = None,
+    measurement_boundary_nodes: np.ndarray | None = None,
 ) -> np.ndarray:
     num_samples, num_excitations, _ = x_delta.shape
-    graphs = np.zeros((num_samples, num_excitations, num_nodes, 4), dtype=np.float32)
+    voltage_nodes = boundary_nodes if measurement_boundary_nodes is None else np.asarray(measurement_boundary_nodes, dtype=np.int64)
+    use_active_mask = active_boundary_nodes is not None
+    feat_dim = 5 if use_active_mask else 4
+    graphs = np.zeros((num_samples, num_excitations, num_nodes, feat_dim), dtype=np.float32)
     graphs[:, :, boundary_nodes, 3] = 1.0
-    graphs[:, :, boundary_nodes, 2] = x_delta
+    graphs[:, :, voltage_nodes, 2] = x_delta
+    if use_active_mask:
+        graphs[:, :, np.asarray(active_boundary_nodes, dtype=np.int64), 4] = 1.0
 
     excitation_ids = np.arange(num_excitations, dtype=np.int64)
     src_nodes = np.asarray([src for src, _ in excitations], dtype=np.int64)

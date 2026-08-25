@@ -1,0 +1,8 @@
+﻿task,version,metric_1,value_1,metric_2,value_2,note
+CLS,modelo1,Macro-F1,0.7825,,,固定邻接图卷积 / 5层GraphLayer基线
+CLS,modelo2,Macro-F1,0.8871,,,切换PyG GATv2 / 引入跨激励注意力
+CLS,modelo3,Macro-F1,0.9075,,,加入监督对比学习 / 稳定阈值与表征
+REG,modelo1,MAE_changed,41.7682,count_macro_f1,0.6886,固定邻接图卷积 / 边级回归基线
+REG,modelo2,MAE_changed,50.966,count_macro_f1,0.5816,切换PyG GATv2 / 但门控过保守
+REG,modelo3,MAE_changed,25.0888,count_macro_f1,0.8314,放松稀疏惩罚 / 联合推理恢复排序
+REG,o4a2,MAE_changed,24.2925,count_macro_f1,0.8683,BCE监督mask + SmoothL1 / 成为最终REG主线

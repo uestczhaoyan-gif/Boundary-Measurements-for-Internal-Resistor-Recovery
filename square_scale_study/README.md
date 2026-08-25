@@ -1,99 +1,53 @@
-# 正方形规模研究子项目
+# Square Scale Study
 
-`square_scale_study` 是从已冻结 `gnn` 主线中拆分出来的独立子项目，用来研究一个更聚焦的问题：
+这个子项目把问题从“某个固定网络能否恢复”推进到“端口数量和拓扑规模如何限制可恢复性”。研究对象是正方形网格 `N x N`，规模从 `3x3` 到 `10x10`，每次固定真实变化数量 `K`，只做纯回归和可识别性判定。
 
-**在固定正方形拓扑下，随着端口数/规模增加，能够稳定识别的最大同时变化电阻数量 `K_max` 是多少？**
+## 核心问题
 
-主线研究口径固定为：
+定义边界端口数 `P = 4N - 4`。对每个 `(N, K)` 组合训练和测试模型，寻找满足以下条件的最大 `K_max`：
 
-- 只使用正方形网格拓扑
-- 规模从 `3x3` 扫到 `10x10`
-- 每个实验只使用固定变化数量 `K`
-- 只研究回归，不做数量分类
-- 主线阶段不加噪声
+- 样本级精确 support 恢复率 `>= 0.98`；
+- 变化量数值准确率 `>= 0.90`。
 
-项目的核心曲线是：
+主曲线是 `P` 与 `K_max` 的关系。它不是主项目的替代品，而是用来研究端口资源、网络规模、响应秩和可辨识性之间的关系。
 
-- 横轴：端口数 `P = 4N - 4`
-- 纵轴：最大可识别变化数量 `K_max`
+## 目录
 
-其中一次运行只有同时满足以下两项时，才算“可识别”：
+| 目录 | 内容 |
+| --- | --- |
+| `data/` | 按 `N`、`K` 组织的数据和元数据；CSV 默认不提交 |
+| `models/` | `modelv1`、`modelv2`、`modelo1/2` 的回归模型 |
+| `scripts/` | 数据生成、批量训练、汇总、误差和图表脚本 |
+| `analysis/` | 激励信息通道、端口负载和灵敏度分析 |
+| `combo_identifiability/` | 固定候选池下的多电阻组合可辨识性 |
+| `theory_validation/` | 响应矩阵秩/SVD 与白箱重构验证 |
+| `Figure/` | 汇报图、曲线和表格图 |
+| `PLAN.md` | 实验设计与判定规则 |
+| `Log.md` | 运行记录、结果和阶段结论 |
 
-- 样本级精确 support 恢复率 `>= 0.98`
-- 数值精度 `value_accuracy >= 0.90`
+## 最小工作流
 
-## 目录说明
-
-- `PLAN.md`：问题定义、实验规则和阶段规划
-- `Log.md`：实际实验记录、阶段性结论和交接信息
-- `data/`：按规模划分的数据目录，如 `N3x3/`、`N4x4/`
-- `scripts/`：数据生成、训练扫表、主线汇总、误差分析和表格导出
-- `models/modelv1/`：第一版最简纯回归基线
-- `models/modelv1_1/`：在 `modelv1` 基础上只修改损失函数的版本
-- `models/modelv2/`：带 score head 的 support-aware 回归版本
-- `models/modelv3/`：面向 `3x3` 优先验证的轻量双头版本，使用浅层图编码和简单跨激励融合
-- `analysis/`：后续机制分析，例如激励信息通道、秩和条件数研究
-- `outputs/`：`modelv1` 的训练与推理输出
-- `outputs_modelv2/`：`modelv2` 的训练与推理输出
-- `Figure/`：汇报图、曲线图和指标表图
-
-## 基本工作流
-
-1. 生成固定 `K` 数据集：
+以下命令从仓库根目录执行，参数以对应脚本的 `--help` 为准：
 
 ```powershell
+python square_scale_study\scripts\generate_square_fixedk_data.py --help
 python square_scale_study\scripts\generate_square_fixedk_data.py --n 3 --k 1
+
+python square_scale_study\models\modelv1\train.py --help
+python square_scale_study\models\modelv1\inference.py --help
+
+python square_scale_study\scripts\generate_square_fixedk_range.py `
+  --n-values 3,4,5 `
+  --k-values 1,2,3,4,5,6
+
+python square_scale_study\scripts\summarize_scale_sweep.py --help
 ```
 
-2. 训练 `modelv1`：
+先在 `3x3` 上完成一轮数据生成、训练、推理和指标汇总，再扩大规模。`N=6~10` 的训练数据可能很大，必须确认磁盘空间和 `.gitignore` 状态。
 
-```powershell
-python square_scale_study\models\modelv1\train.py --meta-path square_scale_study\data\N3x3\square_N3x3_K1_meta.json
-```
+## 两条分析线
 
-3. 推理并导出指标：
+1. **学习型回归**：比较不同模型在固定 `N,K` 下的 support 与数值恢复。
+2. **白箱/理论验证**：在已知候选池或已知变化位置时直接解线性系统，检查响应矩阵的秩、奇异值和条件数是否能预测难度。
 
-```powershell
-python square_scale_study\models\modelv1\inference.py --meta-path square_scale_study\data\N3x3\square_N3x3_K1_meta.json
-```
-
-4. 其他模型只需要更换入口路径：
-
-```powershell
-python square_scale_study\models\modelv1_1\train.py --meta-path square_scale_study\data\N3x3\square_N3x3_K2_meta.json
-python square_scale_study\models\modelv1_1\inference.py --meta-path square_scale_study\data\N3x3\square_N3x3_K2_meta.json
-
-python square_scale_study\models\modelv2\train.py --meta-path square_scale_study\data\N3x3\square_N3x3_K2_meta.json
-python square_scale_study\models\modelv2\inference.py --meta-path square_scale_study\data\N3x3\square_N3x3_K2_meta.json
-
-python square_scale_study\models\modelv3\train.py --meta-path square_scale_study\data\N3x3\square_N3x3_K2_meta.json
-python square_scale_study\models\modelv3\inference.py --meta-path square_scale_study\data\N3x3\square_N3x3_K2_meta.json
-```
-
-5. 汇总主线结果：
-
-```powershell
-python square_scale_study\scripts\summarize_scale_sweep.py --outputs-root square_scale_study\outputs
-```
-
-## 当前执行策略
-
-- 主线结果、图表和记录都只沉淀在 `square_scale_study/` 内，不再继续扩写根目录长文档。
-- 当前已经完成 `N=3~5, K=1~6` 的 `modelv1` 与 `modelv2` 基线。
-- 下一阶段的模型改进，优先在 `3x3` 网络上快速验证；只有在 `3x3` 上出现明确提升后，才扩展到更大规模，避免单次迭代周期过长、资源消耗过大。
-- `scripts/summarize_scale_sweep.py` 用于生成主曲线图和总表。
-- `scripts/analyze_support_errors.py` 用于单点 support 恢复误差分析。
-- `scripts/export_test_metric_table.py` 用于导出可直接放进 PPT 的测试集指标表。
-## 2026-04-12 模型设计更新
-
-- 新增模型设计记录文档：`MODEL_DESIGN.md`
-- 本轮新增三条模型线：
-  - `models/modelo1_gnn/`
-  - `models/modelo1_mlp1/`
-  - `models/modelo1_mlp2/`
-- `MODEL_DESIGN.md` 统一记录以下内容：
-  - 三个模型各自回答的问题和对照作用
-  - 三种结果组合的分析口径
-  - 每个模型的正式架构记录
-  - 各自 loss 的精确定义
-  - `N=3, K=2~4` 的推荐训练命令
+只有当学习型结果和白箱结果使用相同拓扑、端口、激励和变化分布时，二者才可以放在同一结论中讨论。详细假设见 [`PLAN.md`](PLAN.md)，阶段记录见 [`Log.md`](Log.md)。

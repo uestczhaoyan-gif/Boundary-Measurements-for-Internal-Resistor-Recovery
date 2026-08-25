@@ -1,0 +1,5 @@
+﻿架构,分类指标,回归指标,分类说明,回归说明
+CNN2D+MLP,0.7852,53.4642,CNN2D_CLS/modelo1 最佳验证 macro-F1（Log）,CNN2D_REG/modelo1 mae_changed（Log）
+U-Net+MLP,0.7969,59.5224,UNET_MLP_CLS/modelo1 最佳验证 macro-F1,UNET_MLP_REG/modelo1 mae_changed
+MLP,0.8735,56.5487,MLP_CLS/modelo7 test macro-F1,MLP_REG/modelo7 mae_changed
+GNN,0.9075,24.2925,GNN_CLS/modelo3 test macro-F1,GNN_REG/o4a2 mae_changed

@@ -18,6 +18,7 @@ prepend_vendor_dir(VENDOR_PLOT, required_version=(3, 11))
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import patches
+from matplotlib.collections import LineCollection
 
 from project_common import (
     BASE_R,
@@ -145,6 +146,194 @@ def solve_boundary_response_for_excitation(topology, resistor_values: np.ndarray
     voltages = solve_all_excitations(gmat, keep_idx, ref_node, rhs, [excitation])
     boundary_nodes = list(topology.boundary_nodes_clockwise)
     return voltages[boundary_nodes, 0]
+
+
+def solve_node_voltages_for_excitation(topology, resistor_values: np.ndarray, excitation: tuple[int, int]) -> np.ndarray:
+    ref_node = topology.boundary_nodes_clockwise[0]
+    keep_idx, rhs = build_rhs_matrix(
+        topology.num_nodes,
+        ref_node=ref_node,
+        excitations=[excitation],
+        current_a=DEFAULT_CURRENT_A,
+    )
+    gmat = build_conductance(topology.num_nodes, resistor_values, topology.resistor_edges)
+    voltages = solve_all_excitations(gmat, keep_idx, ref_node, rhs, [excitation])
+    return voltages[:, 0]
+
+
+def edge_currents_from_voltages(topology, resistor_values: np.ndarray, voltages: np.ndarray) -> np.ndarray:
+    currents = []
+    for rid, (u, v) in enumerate(topology.resistor_edges):
+        currents.append(float((voltages[u] - voltages[v]) / resistor_values[rid]))
+    return np.asarray(currents, dtype=np.float64)
+
+
+def draw_current_arrows(ax, topology, currents: np.ndarray) -> None:
+    max_current = max(float(np.max(np.abs(currents))), 1e-12)
+    for rid, (u, v) in enumerate(topology.resistor_edges):
+        current = float(currents[rid])
+        norm = abs(current) / max_current
+        if abs(current) <= 1e-15:
+            continue
+
+        if current >= 0.0:
+            start_node, end_node = u, v
+        else:
+            start_node, end_node = v, u
+
+        x1, y1 = node_xy(topology, start_node)
+        x2, y2 = node_xy(topology, end_node)
+        dx, dy = (x2 - x1), (y2 - y1)
+        start = (x1 + 0.16 * dx, y1 + 0.16 * dy)
+        end = (x1 + 0.84 * dx, y1 + 0.84 * dy)
+
+        arrow = patches.FancyArrowPatch(
+            start,
+            end,
+            arrowstyle="-|>",
+            mutation_scale=4.0 + 10.0 * norm,
+            linewidth=0.12 + 2.8 * norm,
+            color="#325d88",
+            alpha=max(0.10, 0.10 + 0.80 * norm),
+            zorder=2.6,
+        )
+        ax.add_patch(arrow)
+
+
+def draw_src_gnd_markers(ax, topology, src: int, gnd: int) -> None:
+    x1, y1 = node_xy(topology, src)
+    x2, y2 = node_xy(topology, gnd)
+    ax.scatter([x1], [y1], s=88, color="#2ca02c", zorder=7)
+    ax.scatter([x2], [y2], s=88, facecolor="white", edgecolor="#d62728", linewidth=2.0, zorder=7)
+    ax.text(x1, y1 + 0.055, "src", ha="center", va="bottom", fontsize=9, color="#2ca02c")
+    ax.text(x2, y2 + 0.055, "gnd", ha="center", va="bottom", fontsize=9, color="#d62728")
+
+
+def generate_current_flow_schematic(output_path: Path) -> None:
+    apply_style()
+    topology = build_square_topology(4)
+    resistor_values = np.full(topology.num_resistors, BASE_R, dtype=np.float64)
+    changed_edge = (5, 9)
+    changed_rid = topology.resistor_edges.index(changed_edge)
+    resistor_values[changed_rid] = 1200.0
+
+    excitations = build_boundary_excitations(topology, excitation_count=12)
+    chosen = [0, 3, 6, 9]
+    titles = [
+        "Excitation A: top side",
+        "Excitation B: right side",
+        "Excitation C: bottom side",
+        "Excitation D: left side",
+    ]
+
+    fig, axes = plt.subplots(2, 2, figsize=(10.8, 9.0), constrained_layout=True)
+    axes = axes.flatten()
+
+    for ax, idx, title in zip(axes, chosen, titles):
+        excitation = excitations[idx]
+        voltages = solve_node_voltages_for_excitation(topology, resistor_values, excitation)
+        currents = edge_currents_from_voltages(topology, resistor_values, voltages)
+
+        draw_base_grid(ax, topology, changed_edge)
+        draw_current_arrows(ax, topology, currents)
+        draw_src_gnd_markers(ax, topology, excitation[0], excitation[1])
+        ax.set_title(f"{title}\n({excitation[0]} → {excitation[1]})")
+
+    fig.suptitle(
+        "Physical view: different boundary excitations create different internal current-flow patterns",
+        fontsize=13,
+    )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=240)
+    plt.close(fig)
+
+
+def generate_current_magnitude_heatmap(output_path: Path) -> None:
+    apply_style()
+    topology = build_square_topology(4)
+    resistor_values = np.full(topology.num_resistors, BASE_R, dtype=np.float64)
+    changed_edge = (5, 9)
+    changed_rid = topology.resistor_edges.index(changed_edge)
+    resistor_values[changed_rid] = 1200.0
+
+    excitations = build_boundary_excitations(topology, excitation_count=12)
+    chosen = [0, 3, 6, 9]
+    titles = [
+        "Excitation A: top side",
+        "Excitation B: right side",
+        "Excitation C: bottom side",
+        "Excitation D: left side",
+    ]
+
+    current_sets = []
+    max_current = 1e-12
+    for idx in chosen:
+        excitation = excitations[idx]
+        voltages = solve_node_voltages_for_excitation(topology, resistor_values, excitation)
+        currents = np.abs(edge_currents_from_voltages(topology, resistor_values, voltages))
+        current_sets.append((excitation, currents))
+        max_current = max(max_current, float(np.max(currents)))
+
+    fig, axes = plt.subplots(2, 2, figsize=(10.8, 9.0), constrained_layout=True)
+    axes = axes.flatten()
+    cmap = plt.cm.YlOrRd
+    norm = plt.Normalize(vmin=0.0, vmax=max_current)
+    collection_for_cbar = None
+
+    for ax, (excitation, currents), title in zip(axes, current_sets, titles):
+        segments = []
+        colors = []
+        widths = []
+        for rid, (u, v) in enumerate(topology.resistor_edges):
+            x1, y1 = node_xy(topology, u)
+            x2, y2 = node_xy(topology, v)
+            segments.append([(x1, y1), (x2, y2)])
+            colors.append(currents[rid])
+            widths.append(1.0 + 5.0 * float(currents[rid] / max_current))
+
+        lc = LineCollection(
+            segments,
+            cmap=cmap,
+            norm=norm,
+            linewidths=widths,
+            zorder=2.2,
+        )
+        lc.set_array(np.asarray(colors, dtype=np.float64))
+        ax.add_collection(lc)
+        if collection_for_cbar is None:
+            collection_for_cbar = lc
+
+        boundary_set = set(topology.boundary_nodes_clockwise)
+        for node_id in range(topology.num_nodes):
+            x, y = node_xy(topology, node_id)
+            if node_id in boundary_set:
+                ax.scatter(x, y, s=58, facecolor="white", edgecolor="#1f77b4", linewidth=1.6, zorder=4)
+            else:
+                ax.scatter(x, y, s=42, color="#404040", zorder=4)
+
+        x1, y1 = node_xy(topology, changed_edge[0])
+        x2, y2 = node_xy(topology, changed_edge[1])
+        ax.plot([x1, x2], [y1, y2], color="#8b0000", linewidth=5.0, solid_capstyle="round", alpha=0.55, zorder=3.2)
+        draw_src_gnd_markers(ax, topology, excitation[0], excitation[1])
+
+        ax.set_aspect("equal")
+        ax.set_xlim(-0.08, 1.08)
+        ax.set_ylim(-0.08, 1.08)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_title(f"{title}\n({excitation[0]} → {excitation[1]})")
+
+    if collection_for_cbar is not None:
+        cbar = fig.colorbar(collection_for_cbar, ax=axes, fraction=0.025, pad=0.02)
+        cbar.set_label("|Current| (A)")
+
+    fig.suptitle(
+        "Current magnitude heatmap: different excitations illuminate different internal branches",
+        fontsize=13,
+    )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=240)
+    plt.close(fig)
 
 
 def generate_boundary_response_compare(output_path: Path) -> None:
@@ -433,15 +622,15 @@ def main() -> None:
 
     generate_physical_schematic(figure_dir / "subproject4_excitation_physical_schematic.png")
     generate_boundary_response_compare(figure_dir / "subproject4_excitation_boundary_response_compare.png")
-    generate_sensitivity_diagnostics(figure_dir / "subproject4_excitation_sensitivity_diagnostics.png")
-    generate_experiment_bridge(figure_dir / "subproject4_excitation_info_bridge.png")
+    generate_current_flow_schematic(figure_dir / "subproject4_excitation_current_flow_compare.png")
+    generate_current_magnitude_heatmap(figure_dir / "subproject4_excitation_current_magnitude_heatmap.png")
     write_short_markdown(text_path)
 
     print(f"wrote_text={text_path}")
     print(f"wrote_figure={figure_dir / 'subproject4_excitation_physical_schematic.png'}")
     print(f"wrote_figure={figure_dir / 'subproject4_excitation_boundary_response_compare.png'}")
-    print(f"wrote_figure={figure_dir / 'subproject4_excitation_sensitivity_diagnostics.png'}")
-    print(f"wrote_figure={figure_dir / 'subproject4_excitation_info_bridge.png'}")
+    print(f"wrote_figure={figure_dir / 'subproject4_excitation_current_flow_compare.png'}")
+    print(f"wrote_figure={figure_dir / 'subproject4_excitation_current_magnitude_heatmap.png'}")
 
 
 if __name__ == "__main__":

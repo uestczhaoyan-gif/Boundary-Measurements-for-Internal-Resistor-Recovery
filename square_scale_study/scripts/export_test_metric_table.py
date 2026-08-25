@@ -21,7 +21,7 @@ except Exception:
     plt = None
 
 
-def load_rows(path: Path) -> list[dict]:
+def load_rows(path: Path, id_field: str, value_field: str, pass_field: str) -> list[dict]:
     rows: list[dict] = []
     with path.open("r", newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
@@ -31,9 +31,9 @@ def load_rows(path: Path) -> list[dict]:
                     "N": int(row["N"]),
                     "P": int(row["P"]),
                     "K": int(row["K"]),
-                    "test_id_exact_rate": float(row["test_id_exact_rate"]),
-                    "test_value_accuracy": float(row["test_value_accuracy"]),
-                    "pass_flag": int(row["pass_flag"]),
+                    "test_id_exact_rate": float(row[id_field]),
+                    "test_value_accuracy": float(row[value_field]),
+                    "pass_flag": int(row[pass_field]),
                 }
             )
     rows.sort(key=lambda item: (item["N"], item["K"]))
@@ -48,8 +48,7 @@ def write_compact_csv(path: Path, rows: list[dict]) -> None:
             fieldnames=["N", "P", "K", "test_id_exact_rate", "test_value_accuracy", "pass_flag"],
         )
         writer.writeheader()
-        for row in rows:
-            writer.writerow(row)
+        writer.writerows(rows)
 
 
 def render_table_png(path: Path, rows: list[dict], title: str) -> None:
@@ -104,17 +103,26 @@ def render_table_png(path: Path, rows: list[dict], title: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="导出测试集指标简表（CSV + PNG）。")
+    parser = argparse.ArgumentParser(description="Export a compact metric table as CSV and PNG.")
     parser.add_argument("--summary-csv", required=True)
     parser.add_argument("--csv-out", required=True)
     parser.add_argument("--png-out", required=True)
-    parser.add_argument("--title", default="测试集指标表")
+    parser.add_argument("--title", default="Test Metric Table")
+    parser.add_argument("--id-field", default="test_id_exact_rate")
+    parser.add_argument("--value-field", default="test_value_accuracy")
+    parser.add_argument("--pass-field", default="pass_flag")
     args = parser.parse_args()
 
-    rows = load_rows(Path(args.summary_csv).resolve())
+    rows = load_rows(
+        Path(args.summary_csv).resolve(),
+        id_field=args.id_field,
+        value_field=args.value_field,
+        pass_field=args.pass_field,
+    )
     write_compact_csv(Path(args.csv_out).resolve(), rows)
     render_table_png(Path(args.png_out).resolve(), rows, args.title)
 
 
 if __name__ == "__main__":
     main()
+

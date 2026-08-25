@@ -1,0 +1,8 @@
+# Core numerical and plotting dependencies
+numpy>=1.24
+scipy>=1.10
+matplotlib>=3.7
+
+# Main GNN line
+torch>=2.0
+torch-geometric>=2.4
